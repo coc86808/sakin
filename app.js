@@ -477,10 +477,7 @@ window.addEventListener('popstate', (e) => {
 });
 
 function initApp() {
-  initTouchSwipeNavigation();
-  initDataBackupAndRestore();
   initElements();
-  TTSEngine.init();
   initMobileSidebar();
   loadSavedPreferences();
   
@@ -551,6 +548,53 @@ function initApp() {
   setupEventListeners();
   setupTextSelectionEngine();
   setupKeyboardShortcuts();
+  TTSEngine.init();
+  initTouchSwipeNavigation();
+  initDataBackupAndRestore();
+}
+
+
+// 3. TEXT PROCESSING & FORMATTING UTILITIES
+function escapeRegExp(string) {
+  if (!string) return '';
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function cleanOcrText(text) {
+  if (!text) return '';
+  return text
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .trim();
+}
+
+function formatLinksInText(text) {
+  if (!text) return '';
+  return text.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="book-ext-link">$1</a>');
+}
+
+function highlightSearchTerm(text) {
+  if (!text || !state.activeSearchTerm || !state.activeSearchTerm.trim()) return text;
+  const term = state.activeSearchTerm.trim();
+  const escaped = escapeRegExp(term);
+  const regex = new RegExp(`(${escaped})`, 'gi');
+  return text.replace(regex, '<mark class="search-highlight">$1</mark>');
+}
+
+function highlightTargetVocabInText(text, targetVocab) {
+  if (!text) return '';
+  if (!targetVocab || targetVocab.length === 0) return text;
+  
+  let formatted = text;
+  targetVocab.forEach(v => {
+    if (!v || !v.trim()) return;
+    const escaped = escapeRegExp(v.trim());
+    const regex = new RegExp(`\\b(${escaped})\\b`, 'gi');
+    formatted = formatted.replace(regex, '<span class="target-vocab-word" onclick="lookupDictionary(\'$1\')">$1</span>');
+  });
+  return formatted;
 }
 
 function updateContextBanner(pageObj) {
@@ -2028,9 +2072,40 @@ function toggleTOCUnit(headerElem) {
   const icon = unitItem.querySelector('.toc-unit-icon');
   if (icon) {
     if (unitItem.classList.contains('expanded')) {
-      icon.className = 'fa-solid fa-folder-open toc-unit-icon';
+      icon.classList.remove('fa-folder');
+      icon.classList.add('fa-folder-open');
     } else {
-      icon.className = 'fa-solid fa-folder toc-unit-icon';
+      icon.classList.remove('fa-folder-open');
+      icon.classList.add('fa-folder');
+    }
+  }
+}
+
+function updateActiveTOC(pageNum) {
+  if (!elements.tocTree) return;
+  const items = elements.tocTree.querySelectorAll('.toc-lesson-item, .toc-unit-item');
+  if (items.length === 0) return;
+  items.forEach(el => el.classList.remove('active'));
+
+  let activeLessonElem = null;
+  const lessonItems = elements.tocTree.querySelectorAll('.toc-lesson-item');
+  lessonItems.forEach(el => {
+    const p = parseInt(el.getAttribute('data-page'), 10);
+    if (p <= pageNum) {
+      activeLessonElem = el;
+    }
+  });
+
+  if (activeLessonElem) {
+    activeLessonElem.classList.add('active');
+    const parentUnit = activeLessonElem.closest('.toc-unit-item');
+    if (parentUnit) {
+      parentUnit.classList.add('expanded');
+      const icon = parentUnit.querySelector('.toc-unit-icon');
+      if (icon) {
+        icon.classList.remove('fa-folder');
+        icon.classList.add('fa-folder-open');
+      }
     }
   }
 }
@@ -3216,43 +3291,39 @@ function setupKeyboardShortcuts() {
 // MOBILE TOUCH SWIPE NAVIGATION & GESTURE ENGINE
 // ============================================================================
 function initTouchSwipeNavigation() {
-  const readerArea = document.querySelector('.main-content') || document.querySelector('.book-reader') || document.body;
-  if (!readerArea) return;
+  const readerArea = document.getElementById('readerViewport') || document.querySelector('.reader-viewport') || document.body;
+  if (!readerArea || typeof readerArea.addEventListener !== 'function') return;
   
   let touchStartX = 0;
   let touchStartY = 0;
   
   readerArea.addEventListener('touchstart', function(e) {
-    if (e.touches.length !== 1) return;
+    if (!e.touches || e.touches.length !== 1) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
   }, { passive: true });
   
   readerArea.addEventListener('touchend', function(e) {
-    if (e.changedTouches.length !== 1) return;
+    if (!e.changedTouches || e.changedTouches.length !== 1) return;
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
     
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
     
-    // Require minimum horizontal swipe distance and horizontal direction dominance
     if (Math.abs(deltaX) > 65 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
-      const selection = window.getSelection();
+      const selection = window.getSelection ? window.getSelection() : null;
       if (selection && selection.toString().length > 0) return;
       
-      // Ignore if user is inside an open modal or input
-      if (document.querySelector('.modal.active') || ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+      if (document.querySelector('.modal.open, .modal.active') || (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName))) {
         return;
       }
       
       if (deltaX < 0) {
-        // Swipe Left -> Next Page
         if (typeof state !== 'undefined' && state.currentPage < state.totalPages) {
           goToPage(state.currentPage + 1);
         }
       } else {
-        // Swipe Right -> Previous Page
         if (typeof state !== 'undefined' && state.currentPage > 1) {
           goToPage(state.currentPage - 1);
         }
@@ -3294,7 +3365,7 @@ function initDataBackupAndRestore() {
   if (importTriggerBtn && fileInput) {
     importTriggerBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
+      const file = e.target.files ? e.target.files[0] : null;
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (event) => {
