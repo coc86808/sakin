@@ -4710,3 +4710,24 @@ mark.target-word-glow-focus::after {
   background: var(--bg-hover);
   border-color: var(--accent);
 }
+
+
+
+/* ==========================================================================
+   ADVANCED TTS SENTENCE HIGHLIGHT & PAUSE STYLES
+   ========================================================================== */
+.tts-active-sentence {
+  background: rgba(99, 102, 241, 0.18) !important;
+  border-left: 3px solid #6366f1 !important;
+  border-radius: 6px;
+  padding: 4px 8px !important;
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.28);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tts-btn.paused {
+  background: #f59e0b !important;
+  color: #ffffff !important;
+  border-color: #f59e0b !important;
+  animation: none !important;
+}
