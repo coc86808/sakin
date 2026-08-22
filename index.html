@@ -49,7 +49,7 @@
 
   <!-- Master Application Layout -->
   <div class="app-layout" id="appLayout">
-    <!-- Top Interactive Navbar -->
+        <!-- Top Interactive Navbar -->
     <nav class="navbar">
       <div class="nav-left">
         <button class="icon-btn" id="toggleSidebarBtn" title="Toggle Sidebar (Ctrl+B)">
@@ -59,45 +59,27 @@
           <div class="brand-icon">
             <i class="fa-solid fa-book-open"></i>
           </div>
-          
-      <!-- Main App View Switcher (Vocab MCQ Hub vs. Textbook Reader) -->
-      <div class="app-view-switcher" id="appViewSwitcher">
-        <button class="view-switch-btn active" id="switchVocabHubBtn" data-view="vocab-hub" title="HSC Vocabulary MCQ Learning Hub (Main Mode)">
-          <i class="fa-solid fa-graduation-cap" style="color: #f59e0b;"></i>
-          <span>Vocab MCQ Hub</span>
-          <span class="view-active-pill">MAIN</span>
-        </button>
-        <button class="view-switch-btn" id="switchReaderBtn" data-view="reader" title="NCTB 295-Page Digital E-Book Reader (Companion Mode)">
-          <i class="fa-solid fa-book-open" style="color: #818cf8;"></i>
-          <span>Textbook Reader</span>
-        </button>
-      </div>
-
           <div class="brand-text">
             <div class="brand-title">English For Today</div>
-            <div class="brand-badge">Classes XI-XII & Alim • Interactive E-Book</div>
+            <div class="brand-badge">Classes XI-XII & Alim</div>
           </div>
         </div>
       </div>
 
-      <!-- Mode Switcher Buttons (Formatted Text / Read PDF) -->
-      <div class="view-mode-toggle" id="viewModeToggle">
-        <button class="mode-btn active" data-mode="text" title="Clean Formatted Digital Text">
-          <i class="fa-solid fa-align-left"></i> Formatted Text
+      <!-- Main App View Switcher (Vocab MCQ Hub vs. Textbook Reader) -->
+      <div class="app-view-switcher" id="appViewSwitcher">
+        <button class="view-switch-btn active" id="switchVocabHubBtn" data-view="vocab-hub" title="HSC Vocabulary MCQ Learning Hub (Main Mode)">
+          <i class="fa-solid fa-graduation-cap" style="color: #f59e0b;"></i>
+          <span class="btn-text">Vocab Hub</span>
         </button>
-        <button class="mode-btn" data-mode="image" title="Read Original Textbook PDF Page">
-          <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i> Read PDF
+        <button class="view-switch-btn" id="switchReaderBtn" data-view="reader" title="NCTB 295-Page Digital E-Book Reader (Companion Mode)">
+          <i class="fa-solid fa-book-open" style="color: #818cf8;"></i>
+          <span class="btn-text">Textbook</span>
         </button>
       </div>
 
       <!-- Nav Right Action Controls -->
       <div class="nav-right">
-                <!-- Magoosh-Style Vocabulary Builder Quiz Trigger -->
-        <button class="nav-action-btn vocab-nav-btn" id="openVocabQuizBtn" title="Practice Textbook Vocabulary (Magoosh Style Quiz)">
-          <i class="fa-solid fa-graduation-cap" style="color: #f59e0b;"></i>
-          <span class="search-hint">Vocab Quiz</span>
-        </button>
-
         <!-- Search Trigger -->
         <button class="nav-action-btn" id="openSearchBtn" title="Search Book (Ctrl+K)">
           <i class="fa-solid fa-magnifying-glass"></i>
