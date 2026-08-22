@@ -1,0 +1,36 @@
+# Python & System caches
+*.py
+__pycache__/
+*.pyc
+temp_chrome/
+
+# Large scanned page images (textbook text is 100% in book_data.js)
+assets/pages/
+
+# Secret & Environment files
+.env
+*.key
+*.pem
+antigravity_bot.py
+
+# Generated PDFs & temporary files
+*.pdf
+*.docx
+*.xlsx
+*.txt
+*.html
+!index.html
+!single_page_pdf.html
+
+# Ignore build artifacts
+.system_generated/
+.tempmediaStorage/
+.user_uploaded/
+chorcha-clone/
+dccbc_promo/
+english-mistake-tracker-extension/
+ludo-game/
+messenger-chat-exporter-extension/
+hsc_english_download_site/
+gen_page_*.png
+pdf_preview.png
