@@ -477,6 +477,8 @@ window.addEventListener('popstate', (e) => {
 });
 
 function initApp() {
+  initTouchSwipeNavigation();
+  initDataBackupAndRestore();
   initElements();
   TTSEngine.init();
   initMobileSidebar();
@@ -1705,7 +1707,33 @@ async function lookupDictionary(word) {
   let localData = null;
   if (window.BANGLA_DICT_DATA && window.BANGLA_DICT_DATA[cleanWord]) {
     localData = window.BANGLA_DICT_DATA[cleanWord];
-  } else if (window.VOCAB_DATA) {
+  } else {
+    // Suffix-stripping Lemmatization Fallback for inflected forms (-ing, -ed, -es, -s, -ly, -ies)
+    const suffixRules = [
+      { end: 'ing', stems: [cleanWord.slice(0, -3), cleanWord.slice(0, -3) + 'e'] },
+      { end: 'ed', stems: [cleanWord.slice(0, -2), cleanWord.slice(0, -1)] },
+      { end: 'ies', stems: [cleanWord.slice(0, -3) + 'y'] },
+      { end: 'es', stems: [cleanWord.slice(0, -2), cleanWord.slice(0, -1)] },
+      { end: 's', stems: [cleanWord.slice(0, -1)] },
+      { end: 'ly', stems: [cleanWord.slice(0, -2)] }
+    ];
+    for (const rule of suffixRules) {
+      if (cleanWord.endsWith(rule.end)) {
+        for (const stem of rule.stems) {
+          if (stem && window.BANGLA_DICT_DATA && window.BANGLA_DICT_DATA[stem]) {
+            localData = Object.assign({}, window.BANGLA_DICT_DATA[stem], {
+              isRootFallback: true,
+              rootWord: stem
+            });
+            break;
+          }
+        }
+        if (localData) break;
+      }
+    }
+  }
+  
+  if (!localData && window.VOCAB_DATA) {
     const vMatch = window.VOCAB_DATA.find(v => v.word.toLowerCase() === cleanWord);
     if (vMatch) {
       localData = {
@@ -3182,3 +3210,132 @@ function setupKeyboardShortcuts() {
     }
   });
 }
+
+
+// ============================================================================
+// MOBILE TOUCH SWIPE NAVIGATION & GESTURE ENGINE
+// ============================================================================
+function initTouchSwipeNavigation() {
+  const readerArea = document.querySelector('.main-content') || document.querySelector('.book-reader') || document.body;
+  if (!readerArea) return;
+  
+  let touchStartX = 0;
+  let touchStartY = 0;
+  
+  readerArea.addEventListener('touchstart', function(e) {
+    if (e.touches.length !== 1) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  
+  readerArea.addEventListener('touchend', function(e) {
+    if (e.changedTouches.length !== 1) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+    
+    // Require minimum horizontal swipe distance and horizontal direction dominance
+    if (Math.abs(deltaX) > 65 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+      const selection = window.getSelection();
+      if (selection && selection.toString().length > 0) return;
+      
+      // Ignore if user is inside an open modal or input
+      if (document.querySelector('.modal.active') || ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+        return;
+      }
+      
+      if (deltaX < 0) {
+        // Swipe Left -> Next Page
+        if (typeof state !== 'undefined' && state.currentPage < state.totalPages) {
+          goToPage(state.currentPage + 1);
+        }
+      } else {
+        // Swipe Right -> Previous Page
+        if (typeof state !== 'undefined' && state.currentPage > 1) {
+          goToPage(state.currentPage - 1);
+        }
+      }
+    }
+  }, { passive: true });
+}
+
+// ============================================================================
+// STUDY DATA BACKUP & RESTORE
+// ============================================================================
+function initDataBackupAndRestore() {
+  const exportBtn = document.getElementById('exportNotesBtn');
+  const importTriggerBtn = document.getElementById('importNotesTriggerBtn');
+  const fileInput = document.getElementById('importNotesFileInput');
+  
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      const backup = {
+        app: 'English For Today E-Book',
+        exportDate: new Date().toISOString(),
+        bookmarks: safeStorage.get('e4t_bookmarks', []),
+        notes: safeStorage.get('e4t_notes', []),
+        highlights: safeStorage.get('e4t_highlights', []),
+        lastPage: safeStorage.get('e4t_last_page', 7)
+      };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `E4T_Study_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  }
+  
+  if (importTriggerBtn && fileInput) {
+    importTriggerBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          if (data.bookmarks) safeStorage.set('e4t_bookmarks', data.bookmarks);
+          if (data.notes) safeStorage.set('e4t_notes', data.notes);
+          if (data.highlights) safeStorage.set('e4t_highlights', data.highlights);
+          alert('Study data restored successfully! Reloading...');
+          window.location.reload();
+        } catch (err) {
+          alert('Invalid backup file format.');
+        }
+      };
+      reader.readAsText(file);
+    });
+  }
+}
+
+// ============================================================================
+// PWA SERVICE WORKER REGISTRATION
+// ============================================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('[PWA] ServiceWorker registered with scope:', reg.scope))
+      .catch(err => console.warn('[PWA] ServiceWorker registration failed:', err));
+  });
+}
+
+// ============================================================================
+// BROWSER HISTORY POPSTATE LISTENER
+// ============================================================================
+window.addEventListener('popstate', (e) => {
+  if (e.state && e.state.page) {
+    goToPage(e.state.page);
+  } else {
+    const params = new URLSearchParams(window.location.search);
+    const p = parseInt(params.get('page'), 10);
+    if (p && !isNaN(p) && typeof goToPage === 'function') {
+      goToPage(p);
+    }
+  }
+});
