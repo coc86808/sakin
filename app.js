@@ -1736,7 +1736,6 @@ function renderSidebarVocabList() {
   elements.sidebarVocabList.innerHTML = html;
 }
 
-// 7.5 ADVANCED GRAMMATICAL MORPHOLOGY & CONJUGATION ENGINE
 const GrammarEngine = {
   capitalize(s) {
     if (!s) return '';
@@ -1746,34 +1745,13 @@ const GrammarEngine = {
   isProperNounOrName(word) {
     if (!word) return false;
     const w = word.toLowerCase().trim();
-    
-    // Months of the year
     const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
-    // Days of the week
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    // Place / Country / City / Geographical names
-    const places = [
-      'bangladesh', 'dhaka', 'paris', 'london', 'bombay', 'mumbai', 'asia', 'europe', 'africa', 'america', 'gaza', 
-      'sajek', 'kuakata', 'sundarbans', 'chittagong', 'sylhet', 'everest', 'himalaya', 'himalayas', 'carolina', 
-      'japan', 'pakistan', 'india', 'thailand', 'bangkok', 'vietnam', 'rome', 'greece', 'athens', 'england', 'britain'
-    ];
-    // People / Historical / Mythological Names
-    const names = [
-      'novera', 'zainul', 'rabindranath', 'tagore', 'byron', 'totto-chan', 'tottochan', 'jerry', 'kobayashi', 
-      'mandela', 'nelson', 'gazi', 'hercules', 'icarus', 'daedalus', 'keats', 'dickinson', 'shilpi', 'rashid', 
-      'brojen', 'wasfia', 'nazreen', 'shamsur', 'jasimuddin', 'rokeya', 'frederick', 'douglass', 'shakespeare',
-      'john', 'emily', 'plato', 'aristotle', 'socrates', 'azam', 'khan', 'pat'
-    ];
+    const places = ['bangladesh', 'dhaka', 'paris', 'london', 'bombay', 'mumbai', 'asia', 'europe', 'africa', 'america', 'gaza', 'sajek', 'kuakata', 'sundarbans', 'chittagong', 'sylhet', 'everest', 'himalaya', 'himalayas', 'carolina', 'japan', 'pakistan', 'india', 'thailand', 'bangkok', 'vietnam', 'rome', 'greece', 'athens', 'england', 'britain'];
+    const names = ['novera', 'zainul', 'rabindranath', 'tagore', 'byron', 'totto-chan', 'tottochan', 'jerry', 'kobayashi', 'mandela', 'nelson', 'gazi', 'hercules', 'icarus', 'daedalus', 'keats', 'dickinson', 'shilpi', 'rashid', 'brojen', 'wasfia', 'nazreen', 'shamsur', 'jasimuddin', 'rokeya', 'frederick', 'douglass', 'shakespeare', 'john', 'emily', 'plato', 'aristotle', 'socrates', 'azam', 'khan', 'pat'];
 
-    if (months.includes(w) || days.includes(w) || places.includes(w) || names.includes(w)) {
-      return true;
-    }
-
-    // Check if entry in dictionary is explicitly marked as proper noun
-    if (window.BANGLA_DICT_DATA && window.BANGLA_DICT_DATA[w] && window.BANGLA_DICT_DATA[w].isProperNoun) {
-      return true;
-    }
-
+    if (months.includes(w) || days.includes(w) || places.includes(w) || names.includes(w)) return true;
+    if (window.BANGLA_DICT_DATA && window.BANGLA_DICT_DATA[w] && window.BANGLA_DICT_DATA[w].isProperNoun) return true;
     return false;
   },
 
@@ -1786,19 +1764,16 @@ const GrammarEngine = {
       'he', 'she', 'it', 'they', 'we', 'you', 'i', 'me', 'him', 'her', 'them', 'us', 'my', 'his', 'their', 'our', 'your', 'its',
       'this', 'that', 'these', 'those', 'who', 'whom', 'whose', 'which', 'what',
       'is', 'are', 'was', 'were', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'done',
-      'will', 'would', 'shall', 'should', 'can', 'could', 'may', 'might', 'must'
+      'will', 'would', 'shall', 'should', 'can', 'could', 'may', 'might', 'must', 'of'
     ];
-    return functionWords.includes(w) || /^\d+$/.test(w);
+    if (functionWords.includes(w) || /^\d+$/.test(w)) return true;
+    if (window.BANGLA_DICT_DATA && window.BANGLA_DICT_DATA[w] && window.BANGLA_DICT_DATA[w].isFunctionWord) return true;
+    return false;
   },
 
   derivePOSFamily(word, posHint) {
     const w = word.toLowerCase().trim();
-
-    // Do NOT generate POS family for Proper Nouns or Function Words
-    if (this.isProperNounOrName(w) || this.isFunctionWord(w)) {
-      return null;
-    }
-
+    if (this.isProperNounOrName(w) || this.isFunctionWord(w)) return null;
     if (window.BANGLA_DICT_DATA && window.BANGLA_DICT_DATA[w] && window.BANGLA_DICT_DATA[w].noun) {
       return {
         noun: window.BANGLA_DICT_DATA[w].noun,
@@ -1807,62 +1782,15 @@ const GrammarEngine = {
         adverb: window.BANGLA_DICT_DATA[w].adverb
       };
     }
-
-    let noun = '', verb = '', adjective = '', adverb = '';
-    
-    if (w.endsWith('tion') || w.endsWith('sion') || w.endsWith('ment') || w.endsWith('ness') || w.endsWith('ity') || w.endsWith('ance') || w.endsWith('ence')) {
-      noun = this.capitalize(w);
-      let base = w.replace(/(tion|sion|ment|ness|ity|ance|ence)$/, '');
-      if (w.endsWith('tion')) verb = this.capitalize(base + (base.endsWith('a') ? 'te' : 'e'));
-      else if (w.endsWith('ment')) verb = this.capitalize(base);
-      else if (w.endsWith('ness')) adjective = this.capitalize(base);
-      else verb = this.capitalize(base);
-      
-      if (!adjective) adjective = this.capitalize(base + 'al');
-      if (!adverb) adverb = this.capitalize(base + 'ally');
-    } else if (w.endsWith('ive') || w.endsWith('ous') || w.endsWith('ful') || w.endsWith('able') || w.endsWith('ible') || w.endsWith('al') || w.endsWith('ic') || w.endsWith('less')) {
-      adjective = this.capitalize(w);
-      adverb = this.capitalize(w.endsWith('ic') ? w + 'ally' : (w.endsWith('le') ? w.slice(0, -1) + 'y' : w + 'ly'));
-      if (w.endsWith('ive')) {
-        let base = w.slice(0, -3);
-        verb = this.capitalize(base + (base.endsWith('t') ? '' : 'e'));
-        noun = this.capitalize(base + 'tion');
-      } else if (w.endsWith('ful')) {
-        let base = w.slice(0, -3);
-        noun = this.capitalize(base);
-        verb = this.capitalize(base);
-      } else if (w.endsWith('able')) {
-        let base = w.slice(0, -4);
-        verb = this.capitalize(base);
-        noun = this.capitalize(base + 'ability');
-      } else {
-        noun = this.capitalize(w + 'ness');
-      }
-    } else if (w.endsWith('ly')) {
-      adverb = this.capitalize(w);
-      let adjBase = w.endsWith('ily') ? w.slice(0, -3) + 'y' : w.slice(0, -2);
-      adjective = this.capitalize(adjBase);
-      noun = this.capitalize(adjBase + 'ness');
-      verb = this.capitalize(adjBase);
-    } else {
-      // Only generate if word is verified content word
-      return null;
-    }
-
-    return {
-      noun: noun,
-      verb: verb,
-      adjective: adjective,
-      adverb: adverb
-    };
+    return null;
   },
 
   deriveVerbForms(word, verbCandidate) {
     const w = word.toLowerCase().trim();
+    if (this.isProperNounOrName(w) || this.isFunctionWord(w)) return null;
     if (window.BANGLA_DICT_DATA && window.BANGLA_DICT_DATA[w] && window.BANGLA_DICT_DATA[w].verbForms) {
       return window.BANGLA_DICT_DATA[w].verbForms;
     }
-
     const v = (verbCandidate || word).toLowerCase().split(/[\s\/]/)[0];
     const irregulars = {
       "be": { v1_present: "be / is / are", v2_past: "was / were", v3_past_participle: "been", v4_continuous: "being", future: "will be" },
@@ -1875,23 +1803,9 @@ const GrammarEngine = {
       "write": { v1_present: "write / writes", v2_past: "wrote", v3_past_participle: "written", v4_continuous: "writing", future: "will write" },
       "break": { v1_present: "break / breaks", v2_past: "broke", v3_past_participle: "broken", v4_continuous: "breaking", future: "will break" },
       "take": { v1_present: "take / takes", v2_past: "took", v3_past_participle: "taken", v4_continuous: "taking", future: "will take" },
+      "give": { v1_present: "give / gives", v2_past: "gave", v3_past_participle: "given", v4_continuous: "giving", future: "will give" },
       "see": { v1_present: "see / sees", v2_past: "saw", v3_past_participle: "seen", v4_continuous: "seeing", future: "will see" },
       "beat": { v1_present: "beat / beats", v2_past: "beat", v3_past_participle: "beaten", v4_continuous: "beating", future: "will beat" },
-      "swim": { v1_present: "swim / swims", v2_past: "swam", v3_past_participle: "swum", v4_continuous: "swimming", future: "will swim" }
-    };
-
-    if (irregulars[v]) return irregulars[v];
-
-    let v1 = `${v} / ${v.endsWith('s') || v.endsWith('sh') || v.endsWith('ch') || v.endsWith('x') ? v + 'es' : (v.endsWith('y') && !/[aeiou]y$/.test(v) ? v.slice(0, -1) + 'ies' : v + 's')}`;
-    let v2 = v.endsWith('e') ? v + 'd' : (v.endsWith('y') && !/[aeiou]y$/.test(v) ? v.slice(0, -1) + 'ied' : v + 'ed');
-    let v3 = v2;
-    let v4 = v.endsWith('ie') ? v.slice(0, -2) + 'ying' : (v.endsWith('e') && !v.endsWith('ee') ? v.slice(0, -1) + 'ing' : v + 'ing');
-    let fut = `will ${v}`;
-
-    return {
-      v1_present: v1,
-      v2_past: v2,
-      v3_past_participle: v3,
       v4_continuous: v4,
       future: fut
     };
@@ -2145,60 +2059,64 @@ function renderBilingualDictionaryData(word, entry, localData, banglaText) {
           </div>
       `;
 
-      // Verb Tense Forms (Only if genuine verb)
+      // Verb Tense Forms (Only if genuine verb with verified forms)
       if (isVerb) {
         const verbForms = GrammarEngine.deriveVerbForms(word, posFamily.verb);
-        html += `
-          <div class="verb-forms-container">
-            <div class="verb-forms-title"><i class="fa-solid fa-clock"></i> ক্রিয়ার কাল ও রূপ (Verb Tenses: V1, V2, V3, V4 & Future)</div>
-            <div class="verb-forms-row">
-              <div class="verb-form-cell">
-                <span class="verb-form-lbl">Present (V1)</span>
-                <span class="verb-form-text">${verbForms.v1_present}</span>
-              </div>
-              <div class="verb-form-cell">
-                <span class="verb-form-lbl">Past (V2)</span>
-                <span class="verb-form-text">${verbForms.v2_past}</span>
-              </div>
-              <div class="verb-form-cell">
-                <span class="verb-form-lbl">Past Participle (V3)</span>
-                <span class="verb-form-text">${verbForms.v3_past_participle}</span>
-              </div>
-              <div class="verb-form-cell">
-                <span class="verb-form-lbl">Continuous (V4)</span>
-                <span class="verb-form-text">${verbForms.v4_continuous}</span>
-              </div>
-              <div class="verb-form-cell">
-                <span class="verb-form-lbl">Future</span>
-                <span class="verb-form-text">${verbForms.future}</span>
+        if (verbForms) {
+          html += `
+            <div class="verb-forms-container">
+              <div class="verb-forms-title"><i class="fa-solid fa-clock"></i> ক্রিয়ার কাল ও রূপ (Verb Tenses: V1, V2, V3, V4 & Future)</div>
+              <div class="verb-forms-row">
+                <div class="verb-form-cell">
+                  <span class="verb-form-lbl">Present (V1)</span>
+                  <span class="verb-form-text">${verbForms.v1_present}</span>
+                </div>
+                <div class="verb-form-cell">
+                  <span class="verb-form-lbl">Past (V2)</span>
+                  <span class="verb-form-text">${verbForms.v2_past}</span>
+                </div>
+                <div class="verb-form-cell">
+                  <span class="verb-form-lbl">Past Participle (V3)</span>
+                  <span class="verb-form-text">${verbForms.v3_past_participle}</span>
+                </div>
+                <div class="verb-form-cell">
+                  <span class="verb-form-lbl">Continuous (V4)</span>
+                  <span class="verb-form-text">${verbForms.v4_continuous}</span>
+                </div>
+                <div class="verb-form-cell">
+                  <span class="verb-form-lbl">Future</span>
+                  <span class="verb-form-text">${verbForms.future}</span>
+                </div>
               </div>
             </div>
-          </div>
-        `;
+          `;
+        }
       }
 
-      // Degrees of Comparison (Only if genuine adjective)
+      // Degrees of Comparison (Only if genuine adjective with verified degrees)
       if (isAdj) {
         const degrees = GrammarEngine.deriveDegrees(word, posFamily.adjective);
-        html += `
-          <div class="degrees-container">
-            <div class="degrees-title"><i class="fa-solid fa-chart-simple"></i> বিশেষণের তারতম্য (Degrees of Comparison)</div>
-            <div class="degrees-row">
-              <div class="degree-cell">
-                <span class="degree-lbl">Positive Degree</span>
-                <span class="degree-text">${degrees.positive}</span>
-              </div>
-              <div class="degree-cell">
-                <span class="degree-lbl">Comparative Degree</span>
-                <span class="degree-text">${degrees.comparative}</span>
-              </div>
-              <div class="degree-cell">
-                <span class="degree-lbl">Superlative Degree</span>
-                <span class="degree-text">${degrees.superlative}</span>
+        if (degrees) {
+          html += `
+            <div class="degrees-container">
+              <div class="degrees-title"><i class="fa-solid fa-chart-simple"></i> বিশেষণের তারতম্য (Degrees of Comparison)</div>
+              <div class="degrees-row">
+                <div class="degree-cell">
+                  <span class="degree-lbl">Positive Degree</span>
+                  <span class="degree-text">${degrees.positive}</span>
+                </div>
+                <div class="degree-cell">
+                  <span class="degree-lbl">Comparative Degree</span>
+                  <span class="degree-text">${degrees.comparative}</span>
+                </div>
+                <div class="degree-cell">
+                  <span class="degree-lbl">Superlative Degree</span>
+                  <span class="degree-text">${degrees.superlative}</span>
+                </div>
               </div>
             </div>
-          </div>
-        `;
+          `;
+        }
       }
 
       html += `</div>`;
