@@ -1506,9 +1506,44 @@ function handleExamOptionSelection(pill, wordObj, isNotSure = false) {
   }
 
   // Morphological & Grammatical Forms
-  const posFamily = GrammarEngine.derivePOSFamily(wordObj.word, wordObj.partOfSpeech);
+  const posFamily = GrammarEngine.derivePOSFamily(wordObj.word, wordObj.partOfSpeech) || {
+    noun: wordObj.noun || '—',
+    verb: wordObj.verb || '—',
+    adjective: wordObj.adjective || '—',
+    adverb: wordObj.adverb || '—'
+  };
   const verbForms = GrammarEngine.deriveVerbForms(wordObj.word, posFamily.verb);
   const degrees = GrammarEngine.deriveDegrees(wordObj.word, posFamily.adjective);
+
+  let verbFormsSectionHtml = '';
+  if (verbForms && (verbForms.v1_present || verbForms.v2_past)) {
+    verbFormsSectionHtml = `
+      <div class="verb-forms-container">
+        <div class="verb-forms-title"><i class="fa-solid fa-clock"></i> ক্রিয়ার কাল (Verb Tenses)</div>
+        <div class="verb-forms-row">
+          <div class="verb-form-cell"><span class="verb-form-lbl">V1</span><span class="verb-form-text">${verbForms.v1_present || '—'}</span></div>
+          <div class="verb-form-cell"><span class="verb-form-lbl">V2</span><span class="verb-form-text">${verbForms.v2_past || '—'}</span></div>
+          <div class="verb-form-cell"><span class="verb-form-lbl">V3</span><span class="verb-form-text">${verbForms.v3_past_participle || '—'}</span></div>
+          <div class="verb-form-cell"><span class="verb-form-lbl">V4</span><span class="verb-form-text">${verbForms.v4_continuous || '—'}</span></div>
+          <div class="verb-form-cell"><span class="verb-form-lbl">Future</span><span class="verb-form-text">${verbForms.future || '—'}</span></div>
+        </div>
+      </div>
+    `;
+  }
+
+  let degreesSectionHtml = '';
+  if (degrees && (degrees.positive || degrees.comparative || degrees.superlative)) {
+    degreesSectionHtml = `
+      <div class="degrees-container">
+        <div class="degrees-title"><i class="fa-solid fa-chart-simple"></i> ডিগ্রিজ (Degrees of Comparison)</div>
+        <div class="degrees-row">
+          <div class="degree-cell"><span class="degree-lbl">Positive</span><span class="degree-text">${degrees.positive || '—'}</span></div>
+          <div class="degree-cell"><span class="degree-lbl">Comparative</span><span class="degree-text">${degrees.comparative || '—'}</span></div>
+          <div class="degree-cell"><span class="degree-lbl">Superlative</span><span class="degree-text">${degrees.superlative || '—'}</span></div>
+        </div>
+      </div>
+    `;
+  }
 
   feedbackHtml += `
     <div class="dict-grammar-card" style="margin: 10px 0;">
@@ -1519,25 +1554,10 @@ function handleExamOptionSelection(pill, wordObj, isNotSure = false) {
         <div class="pos-family-item"><span class="pos-family-tag">Adjective</span><span class="pos-family-val">${posFamily.adjective || '—'}</span></div>
         <div class="pos-family-item"><span class="pos-family-tag">Adverb</span><span class="pos-family-val">${posFamily.adverb || '—'}</span></div>
       </div>
-      <div class="verb-forms-container">
-        <div class="verb-forms-title"><i class="fa-solid fa-clock"></i> ক্রিয়ার কাল (Verb Tenses)</div>
-        <div class="verb-forms-row">
-          <div class="verb-form-cell"><span class="verb-form-lbl">V1</span><span class="verb-form-text">${verbForms.v1_present}</span></div>
-          <div class="verb-form-cell"><span class="verb-form-lbl">V2</span><span class="verb-form-text">${verbForms.v2_past}</span></div>
-          <div class="verb-form-cell"><span class="verb-form-lbl">V3</span><span class="verb-form-text">${verbForms.v3_past_participle}</span></div>
-          <div class="verb-form-cell"><span class="verb-form-lbl">V4</span><span class="verb-form-text">${verbForms.v4_continuous}</span></div>
-          <div class="verb-form-cell"><span class="verb-form-lbl">Future</span><span class="verb-form-text">${verbForms.future}</span></div>
-        </div>
-      </div>
-      <div class="degrees-container">
-        <div class="degrees-title"><i class="fa-solid fa-chart-simple"></i> ডিগ্রিজ (Degrees of Comparison)</div>
-        <div class="degrees-row">
-          <div class="degree-cell"><span class="degree-lbl">Positive</span><span class="degree-text">${degrees.positive}</span></div>
-          <div class="degree-cell"><span class="degree-lbl">Comparative</span><span class="degree-text">${degrees.comparative}</span></div>
-          <div class="degree-cell"><span class="degree-lbl">Superlative</span><span class="degree-text">${degrees.superlative}</span></div>
-        </div>
-      </div>
+      ${verbFormsSectionHtml}
+      ${degreesSectionHtml}
     </div>
+  `;
 
     <div class="dict-syn-ant-container" style="margin: 10px 0;">
       <div class="synonyms-card">
@@ -1784,26 +1804,53 @@ const GrammarEngine = {
   },
 
   derivePOSFamily(word, posHint) {
+    if (!word) return { noun: '—', verb: '—', adjective: '—', adverb: '—' };
     const w = word.toLowerCase().trim();
-    if (this.isProperNounOrName(w) || this.isFunctionWord(w)) return null;
+    if (this.isProperNounOrName(w) || this.isFunctionWord(w)) {
+      return { noun: '—', verb: '—', adjective: '—', adverb: '—' };
+    }
     if (window.BANGLA_DICT_DATA && window.BANGLA_DICT_DATA[w] && window.BANGLA_DICT_DATA[w].noun) {
       return {
-        noun: window.BANGLA_DICT_DATA[w].noun,
-        verb: window.BANGLA_DICT_DATA[w].verb,
-        adjective: window.BANGLA_DICT_DATA[w].adjective,
-        adverb: window.BANGLA_DICT_DATA[w].adverb
+        noun: window.BANGLA_DICT_DATA[w].noun || '—',
+        verb: window.BANGLA_DICT_DATA[w].verb || '—',
+        adjective: window.BANGLA_DICT_DATA[w].adjective || '—',
+        adverb: window.BANGLA_DICT_DATA[w].adverb || '—'
       };
     }
-    return null;
+    if (window.VOCAB_DATA) {
+      const found = window.VOCAB_DATA.find(item => item.word.toLowerCase() === w);
+      if (found && (found.noun || found.verb || found.adjective || found.adverb)) {
+        return {
+          noun: found.noun || '—',
+          verb: found.verb || '—',
+          adjective: found.adjective || '—',
+          adverb: found.adverb || '—'
+        };
+      }
+    }
+    return {
+      noun: '—',
+      verb: '—',
+      adjective: '—',
+      adverb: '—'
+    };
   },
 
   deriveVerbForms(word, verbCandidate) {
+    if (!word) return null;
     const w = word.toLowerCase().trim();
     if (this.isProperNounOrName(w) || this.isFunctionWord(w)) return null;
     if (window.BANGLA_DICT_DATA && window.BANGLA_DICT_DATA[w] && window.BANGLA_DICT_DATA[w].verbForms) {
       return window.BANGLA_DICT_DATA[w].verbForms;
     }
-    const v = (verbCandidate || word).toLowerCase().split(/[\s\/]/)[0];
+    if (window.VOCAB_DATA) {
+      const found = window.VOCAB_DATA.find(item => item.word.toLowerCase() === w);
+      if (found && found.verbForms) return found.verbForms;
+    }
+    const cand = (verbCandidate && verbCandidate !== '—') ? verbCandidate : word;
+    const v = cand.toLowerCase().split(/[\s\/]/)[0].replace(/[^a-z]/g, '');
+    if (!v || v.length < 2) return null;
+
     const irregulars = {
       "be": { v1_present: "be / is / are", v2_past: "was / were", v3_past_participle: "been", v4_continuous: "being", future: "will be" },
       "have": { v1_present: "have / has", v2_past: "had", v3_past_participle: "had", v4_continuous: "having", future: "will have" },
@@ -1840,12 +1887,21 @@ const GrammarEngine = {
   },
 
   deriveDegrees(word, adjCandidate) {
+    if (!word) return null;
     const w = word.toLowerCase().trim();
+    if (this.isProperNounOrName(w) || this.isFunctionWord(w)) return null;
     if (window.BANGLA_DICT_DATA && window.BANGLA_DICT_DATA[w] && window.BANGLA_DICT_DATA[w].degrees) {
       return window.BANGLA_DICT_DATA[w].degrees;
     }
+    if (window.VOCAB_DATA) {
+      const found = window.VOCAB_DATA.find(item => item.word.toLowerCase() === w);
+      if (found && found.degrees) return found.degrees;
+    }
 
-    const a = (adjCandidate || word).toLowerCase().split(/[\s\/]/)[0];
+    const cand = (adjCandidate && adjCandidate !== '—') ? adjCandidate : word;
+    const a = cand.toLowerCase().split(/[\s\/]/)[0].replace(/[^a-z]/g, '');
+    if (!a || a.length < 2) return null;
+
     const irregularDegrees = {
       "good": { positive: "good", comparative: "better", superlative: "best" },
       "well": { positive: "well", comparative: "better", superlative: "best" },
@@ -3495,6 +3551,40 @@ function setupEventListeners() {
       zoomLevel = 1.0;
       elements.originalPageImg.style.transform = 'scale(1.0)';
       elements.zoomResetBtn.textContent = '100%';
+    };
+  }
+
+  // 16. Graceful Scanned Page / PDF View Fallback
+  if (elements.originalPageImg) {
+    elements.originalPageImg.onerror = () => {
+      elements.originalPageImg.style.display = 'none';
+      let notice = document.getElementById('imageFallbackNotice');
+      if (!notice && elements.imageViewContainer) {
+        notice = document.createElement('div');
+        notice.id = 'imageFallbackNotice';
+        notice.className = 'pdf-fallback-card';
+        notice.innerHTML = `
+          <div style="text-align: center; padding: 3rem 1.5rem; max-width: 540px; margin: 2rem auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+            <div style="font-size: 2.8rem; color: var(--accent); margin-bottom: 1rem;"><i class="fa-solid fa-book-open-reader"></i></div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem; color: var(--text-main);">High-Speed Digital Text View</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">
+              Textbook page ${state.currentPage} is fully rendered in high-definition digital text with interactive bilingual dictionary, audio pronunciation, and vocabulary drills.
+            </p>
+            <button class="primary-pill-btn" onclick="setViewMode('text')" style="padding: 0.75rem 1.6rem; font-size: 0.95rem; border-radius: var(--radius-full); cursor: pointer; background: var(--accent); color: #fff; border: none; font-weight: 600; box-shadow: 0 4px 14px var(--accent-glow);">
+              <i class="fa-solid fa-align-left" style="margin-right: 0.4rem;"></i> Switch to Formatted Text View
+            </button>
+          </div>
+        `;
+        const wrapper = elements.imageViewContainer.querySelector('.img-wrapper') || elements.imageViewContainer;
+        wrapper.appendChild(notice);
+      } else if (notice) {
+        notice.style.display = 'block';
+      }
+    };
+    elements.originalPageImg.onload = () => {
+      elements.originalPageImg.style.display = 'block';
+      const notice = document.getElementById('imageFallbackNotice');
+      if (notice) notice.style.display = 'none';
     };
   }
 }
