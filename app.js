@@ -1241,11 +1241,18 @@ function startMistakesOnlyPractice() {
   renderExamQuestion();
 }
 
-// Fisher-Yates array shuffler for randomized MCQ choices
+// Enhanced High-Entropy Fisher-Yates array shuffler for randomized MCQ choices
 function shuffleArray(arr) {
+  if (!Array.isArray(arr) || arr.length <= 1) return [...(arr || [])];
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    let rand = Math.random();
+    if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+      const uintArr = new Uint32Array(1);
+      window.crypto.getRandomValues(uintArr);
+      rand = uintArr[0] / (0xFFFFFFFF + 1);
+    }
+    const j = Math.floor(rand * (i + 1));
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
