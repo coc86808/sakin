@@ -5,6 +5,10 @@
     {
       "source": "/sakin",
       "destination": "/sakin/index.html"
+    },
+    {
+      "source": "/sakin/",
+      "destination": "/sakin/index.html"
     }
   ],
   "headers": [
