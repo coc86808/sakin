@@ -290,9 +290,8 @@ function initElements() {
     pageCardBody: document.getElementById('pageCardBody'),
     originalPageImg: document.getElementById('originalPageImg'),
 
-    // View Mode Buttons
+    // View Mode Buttons (Formatted Text / Read PDF)
     btnModeText: document.querySelector('.mode-btn[data-mode="text"]') || document.getElementById('btnModeText'),
-    btnModeSplit: document.querySelector('.mode-btn[data-mode="split"]') || document.getElementById('btnModeSplit'),
     btnModeImage: document.querySelector('.mode-btn[data-mode="image"]') || document.getElementById('btnModeImage'),
 
     // Audio & Narration
@@ -2944,8 +2943,8 @@ function stopAudio() {
 // 13. SETTINGS, THEMES & PREFERENCES
 function setViewMode(mode) {
   state.viewMode = mode;
-  [elements.btnModeText, elements.btnModeSplit, elements.btnModeImage].forEach(btn => {
-    if (btn) btn.classList.remove('active');
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
   });
 
   if (elements.textViewContainer) elements.textViewContainer.style.display = 'none';
@@ -2953,22 +2952,14 @@ function setViewMode(mode) {
   if (elements.readerStage) elements.readerStage.className = 'reader-stage';
 
   if (mode === 'text') {
-    if (elements.btnModeText) elements.btnModeText.classList.add('active');
     if (elements.textViewContainer) elements.textViewContainer.style.display = 'block';
-  } else if (mode === 'image') {
-    if (elements.btnModeImage) elements.btnModeImage.classList.add('active');
+  } else if (mode === 'image' || mode === 'pdf') {
     if (elements.imageViewContainer) elements.imageViewContainer.style.display = 'flex';
-  } else if (mode === 'split') {
-    if (elements.btnModeSplit) elements.btnModeSplit.classList.add('active');
-    if (elements.textViewContainer) elements.textViewContainer.style.display = 'block';
-    if (elements.imageViewContainer) elements.imageViewContainer.style.display = 'flex';
-    if (elements.readerStage) elements.readerStage.classList.add('split-mode-active');
-  }
-
-  if ((mode === 'image' || mode === 'split') && elements.originalPageImg && state.bookData && state.bookData.pages) {
-    const pageObj = state.bookData.pages[state.currentPage - 1];
-    if (pageObj) {
-      elements.originalPageImg.src = pageObj.image || `assets/pages/page_${state.currentPage}.png`;
+    if (elements.originalPageImg && state.bookData && state.bookData.pages) {
+      const pageObj = state.bookData.pages[state.currentPage - 1];
+      if (pageObj) {
+        elements.originalPageImg.src = pageObj.image || `assets/pages/page_${state.currentPage}.png`;
+      }
     }
   }
 
@@ -3458,8 +3449,10 @@ function setupKeyboardShortcuts() {
     } else if (e.key === 'd' || (e.ctrlKey && e.key === 'k')) {
       e.preventDefault();
       openSearchModal();
-    } else if (e.key === 'q') {
+    } else if (e.key === 'q' || e.key === 'Q') {
       openVocabQuizModal();
+    } else if (e.key === 'p' || e.key === 'P') {
+      setViewMode(state.viewMode === 'text' ? 'image' : 'text');
     } else if (e.key === 'Escape') {
       [elements.searchModal, elements.settingsModal, elements.noteModal, elements.dictionaryModal, elements.shortcutsModal, elements.vocabStudioModal].forEach(m => {
         if (m) m.classList.remove('open');
