@@ -4731,3 +4731,23 @@ mark.target-word-glow-focus::after {
   border-color: #f59e0b !important;
   animation: none !important;
 }
+
+
+
+/* ==========================================================================
+   DICTIONARY ROOT WORD LEMMA NOTE STYLES
+   ========================================================================== */
+.dict-root-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: #a5b4fc;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-top: 4px;
+  margin-bottom: 10px;
+}
