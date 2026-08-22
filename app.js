@@ -674,25 +674,23 @@ function renderTextContent(pageObj, triggerFlipAnim) {
 
   const targetVocab = pageObj.target_vocab || [];
 
+  // 1. Clean OCR headers, footers & noise
   let clean = cleanOcrText(rawText)
+    .replace(/^\s*\d+\s+1\.\s+[A-Z]\.\s+English For Today\s*/gi, '')
+    .replace(/^\s*\d+\s+(Step\s+\d+:\s+[^\n]+)\s+English For Today\s*/gi, '$1\n')
     .replace(/^\s*\d+\s+English For Today\s*/gi, '')
     .replace(/^English For Today.*?\d+\s*/gi, '')
     .replace(/^Forma-\d+.*English\s*/gi, '')
-    .replace(/Education and Life\s+/gi, '')
+    .replace(/^\s*(?:Education and Life|Art and Craft|Dreams|Traffic Education|Youthful Achievers|Relationships|Adolescence|Human Rights|Peace and Conflict|Environment and Nature|Tours and Travels|Myths and Literature)\s+/gi, '')
     .trim();
 
-  clean = clean.replace(/\bI\.\s+(?=Do you|What|Why|How)/g, '1. ');
-  clean = clean.replace(/\b7\s+2\.\s+/g, '2. ');
-  clean = clean.replace(/\b3,\s+/g, '3. ');
-
-  clean = clean.replace(/([a-e])\.\s+([a-z]+)\s+([a-e])\.\s+([a-z]+)\s+([a-e])\.\s+([a-z]+)/gi, '\n__VOCAB_STACK__\n$1. $2\n$3. $4\n$5. $6\n');
-  clean = clean.replace(/(\d+\.\s+[^:\n]+:\s*a\.\s+[^|\n]+\|\s*b\.\s+[^|\n]+(?:\|\s*c\.\s+[^|\n]+)?(?:\|\s*d\.\s+[^|\n]+)?)/gi, '\n__MCQ_ITEM__\n$1\n');
-  clean = clean.replace(/\b(Lesson\s+\d+)\s+(.*?)(?=\s+[A-Z]\.|\s+A\b|\s+Warm)/gi, '\n__LESSON_HEADER__\n$1\n$2\n');
-  clean = clean.replace(/\s+([A-E]\.\s+.*?)(?=\s+\d+\.|\s+Read|\s+Look|\s+Discuss|\s+Think|\s+Now|\s+[A-Z][a-z]+)/g, '\n__SECTION_HEADER__\n$1\n');
-  clean = clean.replace(/\s+(\d+\.\s+.*?)(?=\s+\d+\.|\s+[A-E]\.|\s+[A-Z][a-z]+)/g, '\n__QUESTION_ITEM__\n$1\n');
-  clean = clean.replace(/\s+(By\s+[A-Z][a-z]+\s+[A-Z][a-z]+)/g, '\n__AUTHOR_BYLINE__\n$1\n');
-  clean = clean.replace(/\s+(Advantages of AI in the Classroom|Disadvantages of AI|Role of EdTech Companies)/gi, '\n__SUBHEADING__\n$1\n');
-  clean = clean.replace(/\s+(AI in The Classroom: Pros, Cons and The Role Of EdTech Companies)/gi, '\n__ARTICLE_TITLE__\n$1\n');
+  // If text is already rich HTML (from Google Docs editor)
+  if (clean.includes('<p>') || clean.includes('<h3>') || clean.includes('<h2>') || clean.includes('<blockquote>')) {
+    if (elements.pageCardBody) {
+      elements.pageCardBody.innerHTML = highlightSearchTerm(highlightTargetVocabInText(formatLinksInText(clean), targetVocab));
+    }
+    return;
+  }
 
   const rawLines = clean.split('\n');
   let html = '';
@@ -702,12 +700,19 @@ function renderTextContent(pageObj, triggerFlipAnim) {
     let line = rawLines[i].trim();
     if (!line) continue;
 
-    if (line === '__MCQ_ITEM__') {
+    // Filter out lone numbers or single-character noise
+    if (/^\d{1,3}$/.test(line) || /^[A-E]\.?$/.test(line)) {
+      continue;
+    }
+
+    const formatted = formatLinksInText(line);
+
+    // MCQ Item with pipe separators (e.g. 1. Word: opt1 | opt2 | opt3 | opt4)
+    if (/^\d+\.\s+[^:\n]+:\s*[^|\n]+\|/i.test(line)) {
       if (inQuestionList) { html += '</div>'; inQuestionList = false; }
-      const mcqText = (rawLines[++i] || '').trim();
-      const parts = mcqText.split(':');
+      const parts = line.split(':');
       const qWord = parts[0].trim();
-      const optsRaw = (parts[1] || '').split('|');
+      const optsRaw = (parts.slice(1).join(':') || '').split('|');
 
       html += `
         <div class="book-mcq-card">
@@ -718,78 +723,45 @@ function renderTextContent(pageObj, triggerFlipAnim) {
         </div>
       `;
     }
-    else if (line === '__LESSON_HEADER__') {
+    // Unit Title Header
+    else if (/^(Unit\s+(?:One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Eleven|Twelve|\d+))(?::|\b)/i.test(line) && line.length < 75) {
       if (inQuestionList) { html += '</div>'; inQuestionList = false; }
-      const lNum = (rawLines[++i] || '').trim();
-      const lTitle = (rawLines[++i] || '').trim();
+      html += `<div class="unit-banner-tag-centered"><i class="fa-solid fa-bookmark"></i> ${highlightSearchTerm(formatted)}</div>`;
+    }
+    // Lesson Main Heading
+    else if (/^(Lesson\s+\d+[:\.\s]*.*)/i.test(line) && line.length < 80) {
+      if (inQuestionList) { html += '</div>'; inQuestionList = false; }
+      html += `<h2 class="lesson-main-heading-centered">${highlightSearchTerm(formatted)}</h2>`;
+    }
+    // Section Header (e.g. A. Warm up activity, B. Read the text)
+    else if (/^[A-E]\.\s+[A-Za-z0-9]/i.test(line) && line.length < 120) {
+      if (inQuestionList) { html += '</div>'; inQuestionList = false; }
+      html += `<div class="book-section-header"><i class="fa-solid fa-layer-group"></i> ${highlightSearchTerm(formatted)}</div>`;
+    }
+    // Question list item
+    else if (/^\d+\.\s+[A-Za-z0-9]/i.test(line) && line.length > 5) {
+      if (!inQuestionList) { html += '<div class="book-question-list">'; inQuestionList = true; }
+      html += `<div class="book-question-item"><i class="fa-solid fa-circle-question"></i> ${highlightSearchTerm(formatted)}</div>`;
+    }
+    // Colon row (e.g. Setting: An orphanage in Carolina)
+    else if (/^[A-Za-z0-9\s\-\–]{2,30}\s*:\s+[\s\S]{3,}/i.test(line) && !/^\d+\./.test(line) && line.indexOf('|') === -1) {
+      if (inQuestionList) { html += '</div>'; inQuestionList = false; }
+      const parts = line.split(':');
+      const label = parts[0].trim();
+      const value = parts.slice(1).join(':').trim();
+
       html += `
-        <div class="book-lesson-header-box">
-          <div class="book-lesson-number">${highlightSearchTerm(formatLinksInText(lNum))}</div>
-          <h1 class="book-lesson-title">${highlightSearchTerm(formatLinksInText(lTitle))}</h1>
+        <div class="book-colon-row">
+          <span class="colon-label">${highlightSearchTerm(formatLinksInText(label))}</span>
+          <span class="colon-sep">:</span>
+          <span class="colon-value">${highlightSearchTerm(formatLinksInText(value))}</span>
         </div>
       `;
     }
-    else if (line === '__SECTION_HEADER__') {
-      if (inQuestionList) { html += '</div>'; inQuestionList = false; }
-      const secText = (rawLines[++i] || '').trim();
-      html += `<div class="book-section-header"><i class="fa-solid fa-layer-group"></i> ${highlightSearchTerm(formatLinksInText(secText))}</div>`;
-    }
-    else if (line === '__QUESTION_ITEM__') {
-      const qText = (rawLines[++i] || '').trim();
-      if (!inQuestionList) { html += '<div class="book-question-list">'; inQuestionList = true; }
-      html += `<div class="book-question-item"><i class="fa-solid fa-circle-question"></i> ${highlightSearchTerm(formatLinksInText(qText))}</div>`;
-    }
-    else if (line === '__ARTICLE_TITLE__') {
-      if (inQuestionList) { html += '</div>'; inQuestionList = false; }
-      const artTitle = (rawLines[++i] || '').trim();
-      html += `<h2 class="book-article-title">${highlightSearchTerm(formatLinksInText(artTitle))}</h2>`;
-    }
-    else if (line === '__AUTHOR_BYLINE__') {
-      if (inQuestionList) { html += '</div>'; inQuestionList = false; }
-      const byline = (rawLines[++i] || '').trim();
-      html += `<div class="book-author-byline">${highlightSearchTerm(formatLinksInText(byline))}</div>`;
-    }
-    else if (line === '__SUBHEADING__') {
-      if (inQuestionList) { html += '</div>'; inQuestionList = false; }
-      const sub = (rawLines[++i] || '').trim();
-      html += `<h3 class="book-subheading">${highlightSearchTerm(formatLinksInText(sub))}</h3>`;
-    }
+    // Normal Book Paragraph
     else {
       if (inQuestionList && !/^\d+\./.test(line)) { html += '</div>'; inQuestionList = false; }
-
-      const formatted = formatLinksInText(line);
-
-      if (/^[A-Za-z0-9\s\-\–]+\s*:\s+[\s\S]+/i.test(line) && !/^\d+\./.test(line) && line.indexOf('|') === -1) {
-        const parts = line.split(':');
-        const label = parts[0].trim();
-        const value = parts.slice(1).join(':').trim();
-
-        html += `
-          <div class="book-colon-row">
-            <span class="colon-label">${highlightSearchTerm(formatLinksInText(label))}</span>
-            <span class="colon-sep">:</span>
-            <span class="colon-value">${highlightSearchTerm(formatLinksInText(value))}</span>
-          </div>
-        `;
-      }
-      else if (/^[a-e]\.\s+[a-z]+$/i.test(line)) {
-        html += `<div class="vocab-stacked-item"><span class="vocab-letter-badge"><i class="fa-solid fa-tag"></i> ${line.slice(0, 2)}</span> <span class="vocab-word-title">${highlightSearchTerm(line.slice(3))}</span></div>`;
-      }
-      else if (/^[a-e]\.\s+.*/i.test(line)) {
-        html += `<div class="book-subquestion-item"><span class="subq-badge">${line.slice(0, 2)}</span> <span class="subq-text">${highlightSearchTerm(formatLinksInText(line.slice(3)))}</span></div>`;
-      }
-      else if (/^(Unit\s+[I|V|X|\d]+[:\.\s]*.*)/i.test(line) && line.length < 60) {
-        html += `<div class="unit-banner-tag-centered"><i class="fa-solid fa-bookmark"></i> ${highlightSearchTerm(formatted)}</div>`;
-      }
-      else if (/^(Lesson\s+\d+[:\.\s]*.*)/i.test(line) && line.length < 60) {
-        html += `<h2 class="lesson-main-heading-centered">${highlightSearchTerm(formatted)}</h2>`;
-      }
-      else if (/^[A-E]\.\s+.*/.test(line) && line.length < 120) {
-        html += `<div class="book-section-header"><i class="fa-solid fa-layer-group"></i> ${highlightSearchTerm(formatted)}</div>`;
-      }
-      else {
-        html += `<p class="book-paragraph">${highlightSearchTerm(highlightTargetVocabInText(formatted, targetVocab))}</p>`;
-      }
+      html += `<p class="book-paragraph">${highlightSearchTerm(highlightTargetVocabInText(formatted, targetVocab))}</p>`;
     }
   }
 
