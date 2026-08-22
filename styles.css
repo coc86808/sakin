@@ -3058,6 +3058,7 @@ mark.target-word-glow-focus::after,
   display: flex;
   align-items: center;
   gap: 10px;
+  user-select: none;
 }
 
 .vocab-option-pill:hover:not(.disabled) {
@@ -3067,17 +3068,43 @@ mark.target-word-glow-focus::after,
 }
 
 .vocab-opt-letter {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 700;
   flex-shrink: 0;
+}
+
+.vocab-key-badge {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vocab-option-pill.not-sure-pill {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1.5px dashed rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
+  margin-top: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.vocab-option-pill.not-sure-pill:hover:not(.disabled) {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: #f59e0b;
+  transform: translateY(-1px);
 }
 
 .vocab-option-pill.correct {
@@ -3103,6 +3130,11 @@ mark.target-word-glow-focus::after,
   background: #ef4444;
   color: #ffffff;
   border-color: #ef4444;
+}
+
+.vocab-option-pill.disabled {
+  cursor: default;
+  opacity: 0.75;
 }
 
 /* Feedback Card */

@@ -959,6 +959,41 @@ function initVocabQuiz() {
   state.questionStartTime = 0;
 
   setupExamDropdowns();
+
+  // Magoosh-Style Keyboard Shortcuts for Rapid Practice
+  if (!window._vocabQuizKbAttached) {
+    window._vocabQuizKbAttached = true;
+    document.addEventListener('keydown', (e) => {
+      const modal = elements.vocabStudioModal || document.getElementById('vocabStudioModal');
+      if (!modal || !modal.classList.contains('open')) return;
+      const activeScreen = document.getElementById('quizActiveScreen');
+      if (!activeScreen || activeScreen.style.display === 'none') return;
+      const feedbackCard = document.getElementById('vocabFeedbackCard');
+      const isFeedbackVisible = feedbackCard && feedbackCard.style.display !== 'none';
+
+      if (isFeedbackVisible) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          const nextBtn = document.getElementById('vNextWordBtn');
+          if (nextBtn) nextBtn.click();
+        }
+      } else {
+        const key = e.key.toUpperCase();
+        const options = document.querySelectorAll('.vocab-option-pill:not(.disabled)');
+        if (!options || options.length === 0) return;
+
+        if (key === '1' || key === 'A') { if (options[0]) options[0].click(); }
+        else if (key === '2' || key === 'B') { if (options[1]) options[1].click(); }
+        else if (key === '3' || key === 'C') { if (options[2]) options[2].click(); }
+        else if (key === '4' || key === 'D') { if (options[3]) options[3].click(); }
+        else if (key === '5' || key === 'S' || key === '?') {
+          const notSure = document.querySelector('.vocab-option-pill.not-sure-pill:not(.disabled)');
+          if (notSure) notSure.click();
+        }
+      }
+    });
+  }
+
   renderSidebarVocabList();
 }
 
@@ -1206,6 +1241,16 @@ function startMistakesOnlyPractice() {
   renderExamQuestion();
 }
 
+// Fisher-Yates array shuffler for randomized MCQ choices
+function shuffleArray(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 function renderExamQuestion() {
   if (state.examIndex >= state.examQuestions.length) {
     showExamAnalytics();
@@ -1267,24 +1312,42 @@ function renderExamQuestion() {
   const optionsContainer = document.getElementById('vocabOptionsContainer');
   if (optionsContainer) {
     const letters = ['A', 'B', 'C', 'D'];
+    
+    // Dynamic Fisher-Yates shuffle: every question has randomized option positions
+    const shuffledChoices = shuffleArray(wordObj.options || [wordObj.correctDefinition]);
+    
     let html = '';
-    wordObj.options.forEach((opt, idx) => {
+    shuffledChoices.forEach((opt, idx) => {
       html += `
         <div class="vocab-option-pill" data-index="${idx}">
           <span class="vocab-opt-letter">${letters[idx]}</span>
           <span class="vocab-opt-text">${opt}</span>
+          <span class="vocab-key-badge">${idx + 1}</span>
         </div>
       `;
     });
+
+    // Magoosh-Style "I'm not sure" (আমি নিশ্চিত নই) button
+    html += `
+      <div class="vocab-option-pill not-sure-pill" data-not-sure="true">
+        <span class="vocab-opt-letter"><i class="fa-solid fa-question"></i></span>
+        <span class="vocab-opt-text">আমি নিশ্চিত নই (I'm not sure) — অর্থ ও বাক্য দেখুন</span>
+        <span class="vocab-key-badge">5</span>
+      </div>
+    `;
+
     optionsContainer.innerHTML = html;
 
     optionsContainer.querySelectorAll('.vocab-option-pill').forEach(pill => {
-      pill.onclick = () => handleExamOptionSelection(pill, wordObj);
+      pill.onclick = () => {
+        const isNotSure = pill.dataset.notSure === 'true';
+        handleExamOptionSelection(pill, wordObj, isNotSure);
+      };
     });
   }
 }
 
-function handleExamOptionSelection(pill, wordObj) {
+function handleExamOptionSelection(pill, wordObj, isNotSure = false) {
   clearInterval(examTimerInterval);
   const timeSpentSec = Math.max(1, Math.round(((Date.now() - state.questionStartTime) / 1000) * 10) / 10);
 
@@ -1294,21 +1357,42 @@ function handleExamOptionSelection(pill, wordObj) {
   const allPills = optionsContainer.querySelectorAll('.vocab-option-pill');
   allPills.forEach(p => p.classList.add('disabled'));
 
-  const selectedText = pill.querySelector('.vocab-opt-text').textContent.trim();
-  const isCorrect = selectedText === wordObj.correctDefinition;
+  let isCorrect = false;
+  let selectedText = '';
 
-  if (isCorrect) {
-    pill.classList.add('correct');
-    state.examScore += 1;
-    AudioEngine.playChime();
-  } else {
+  if (isNotSure) {
     pill.classList.add('wrong');
-    AudioEngine.playClick();
     allPills.forEach(p => {
-      if (p.querySelector('.vocab-opt-text').textContent.trim() === wordObj.correctDefinition) {
+      const txt = p.querySelector('.vocab-opt-text');
+      if (txt && txt.textContent.trim() === wordObj.correctDefinition) {
         p.classList.add('correct');
       }
     });
+    selectedText = "I'm not sure (আমি নিশ্চিত নই)";
+    AudioEngine.playClick();
+    
+    // Adaptive Spaced Repetition (SRS): Add back to queue for mastery
+    state.examQuestions.push(wordObj);
+  } else {
+    selectedText = pill.querySelector('.vocab-opt-text').textContent.trim();
+    isCorrect = selectedText === wordObj.correctDefinition;
+
+    if (isCorrect) {
+      pill.classList.add('correct');
+      state.examScore += 1;
+      AudioEngine.playChime();
+    } else {
+      pill.classList.add('wrong');
+      AudioEngine.playClick();
+      allPills.forEach(p => {
+        const txt = p.querySelector('.vocab-opt-text');
+        if (txt && txt.textContent.trim() === wordObj.correctDefinition) {
+          p.classList.add('correct');
+        }
+      });
+      // Adaptive Spaced Repetition: Add missed word back to queue
+      state.examQuestions.push(wordObj);
+    }
   }
 
   // Record into detailed exam history
@@ -1318,6 +1402,7 @@ function handleExamOptionSelection(pill, wordObj) {
     selectedText: selectedText,
     correctText: wordObj.correctDefinition,
     isCorrect: isCorrect,
+    isNotSure: isNotSure,
     timeSpentSeconds: timeSpentSec
   });
 
@@ -1329,6 +1414,9 @@ function handleExamOptionSelection(pill, wordObj) {
     if (isCorrect) {
       feedbackBanner.className = 'feedback-status-banner correct';
       feedbackBanner.innerHTML = `<i class="fa-solid fa-circle-check"></i> <strong>সঠিক উত্তর! (Correct! - ${timeSpentSec}s)</strong>`;
+    } else if (isNotSure) {
+      feedbackBanner.className = 'feedback-status-banner warning';
+      feedbackBanner.innerHTML = `<i class="fa-solid fa-lightbulb"></i> <strong>শেখার সুযোগ (Learning Mode)</strong> — শব্দটি আয়ত্ত করতে নিচে অর্থ ও ব্যাকরণ রূপ মনোযোগ দিয়ে পড়ুন:`;
     } else {
       feedbackBanner.className = 'feedback-status-banner incorrect';
       feedbackBanner.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <strong>ভুল উত্তর (Incorrect - ${timeSpentSec}s)</strong> — নিচে সঠিক অর্থ ও বিশ্লেষণ দেখুন:`;
@@ -1415,7 +1503,7 @@ function handleExamOptionSelection(pill, wordObj) {
         <i class="fa-solid fa-book-bookmark"></i>
         <span>${wordObj.unit} • ${wordObj.lesson}</span>
       </div>
-      <button class="jump-to-book-btn" onclick="jumpToWordInBook(${wordObj.page}, '${wordObj.word}')" title="Redirect directly to this word in the textbook and highlight it">
+      <button class="jump-to-book-btn" onclick="jumpToWordInBook(${wordObj.page}, '${wordObj.word.replace(/'/g, "\'")}', true)" title="Open this word in the textbook in a new popup tab (Exam remains active)">
         <i class="fa-solid fa-arrow-up-right-from-square"></i> 📖 View in Textbook (Book Page ${wordObj.printedPage}) &rarr;
       </button>
     </div>
@@ -1432,7 +1520,7 @@ function handleExamOptionSelection(pill, wordObj) {
     if (state.examIndex + 1 >= state.examQuestions.length) {
       nextBtn.innerHTML = `🏆 Finish Exam & View Analytics (ফলাফল দেখুন) <i class="fa-solid fa-award"></i>`;
     } else {
-      nextBtn.innerHTML = `Next Question <i class="fa-solid fa-arrow-right"></i>`;
+      nextBtn.innerHTML = `Next Question (পরবর্তী প্রশ্ন) <i class="fa-solid fa-arrow-right"></i>`;
     }
 
     nextBtn.onclick = () => {
