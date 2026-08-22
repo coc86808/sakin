@@ -257,6 +257,86 @@ const AudioEngine = {
     } catch (e) {
       console.warn('Audio SFX chime failed:', e);
     }
+  },
+  playCorrect() {
+    if (!state.soundEnabled) return;
+    try {
+      this.init();
+      if (!this.ctx) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(523.25, now); // C5
+      osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+      osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+      osc.frequency.setValueAtTime(1046.50, now + 0.24); // C6
+
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.45);
+    } catch (e) {
+      console.warn('Audio SFX playCorrect notice:', e);
+    }
+  },
+  playWrong() {
+    if (!state.soundEnabled) return;
+    try {
+      this.init();
+      if (!this.ctx) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, now); // A3
+      osc.frequency.setValueAtTime(164.81, now + 0.12); // E3
+
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.3);
+    } catch (e) {
+      console.warn('Audio SFX playWrong notice:', e);
+    }
+  },
+  playLevelUp() {
+    if (!state.soundEnabled) return;
+    try {
+      this.init();
+      if (!this.ctx) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+
+      const now = this.ctx.currentTime;
+      [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + i * 0.08);
+        gain.gain.setValueAtTime(0.1, now + i * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now + i * 0.08);
+        osc.stop(now + i * 0.08 + 0.25);
+      });
+    } catch (e) {
+      console.warn('Audio SFX playLevelUp notice:', e);
+    }
   }
 };
 
@@ -2853,6 +2933,25 @@ const TTSEngine = {
     return sentences;
   },
 
+  speak(text) {
+    if (!text || !text.trim() || !window.speechSynthesis) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text.trim());
+      utterance.lang = 'en-US';
+      if (this.selectedVoice) utterance.voice = this.selectedVoice;
+      let rate = 0.95;
+      if (elements.ttsRateSelect) {
+        const val = parseFloat(elements.ttsRateSelect.value || '1.0');
+        if (!isNaN(val)) rate = val;
+      }
+      utterance.rate = rate;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('TTSEngine speak error:', e);
+    }
+  },
+
   play() {
     if (!window.speechSynthesis) {
       showToast('Speech synthesis is not supported on this browser', 'error');
@@ -3855,8 +3954,9 @@ const VocabHubEngine = {
           this.switchView('reader');
           goToPage(targetPage, false, false);
           if (q.word) {
+            state.focusedTargetWord = q.word;
             setTimeout(() => {
-              focusAndHighlightWordInText(q.word);
+              focusWordInRenderedPage(q.word);
             }, 300);
           }
         }
@@ -4257,3 +4357,14 @@ const VocabHubEngine = {
     AudioEngine.playLevelUp();
   }
 };
+
+// Global Helper & Window Exports
+if (typeof window !== 'undefined') {
+  window.focusWordInRenderedPage = focusWordInRenderedPage;
+  window.focusAndHighlightWordInText = focusWordInRenderedPage;
+  window.lookupDictionary = lookupDictionary;
+  window.openDictModal = lookupDictionary;
+  window.TTSEngine = TTSEngine;
+  window.VocabHubEngine = VocabHubEngine;
+  window.AudioEngine = AudioEngine;
+}
