@@ -1,3 +1,65 @@
+// Mobile Sidebar Drawer Management
+function initMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const toggleBtn = document.getElementById('sidebarToggleBtn');
+  const closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    if (!sidebar) return;
+    sidebar.classList.remove('collapsed');
+    if (backdrop) backdrop.classList.add('active');
+  }
+
+  function closeSidebar() {
+    if (!sidebar) return;
+    sidebar.classList.add('collapsed');
+    if (backdrop) backdrop.classList.remove('active');
+  }
+
+  function toggleSidebar() {
+    if (!sidebar) return;
+    if (sidebar.classList.contains('collapsed')) {
+      openSidebar();
+    } else {
+      closeSidebar();
+    }
+  }
+
+  if (toggleBtn) {
+    toggleBtn.onclick = (e) => {
+      e.stopPropagation();
+      toggleSidebar();
+    };
+  }
+
+  if (closeBtn) {
+    closeBtn.onclick = (e) => {
+      e.stopPropagation();
+      closeSidebar();
+    };
+  }
+
+  if (backdrop) {
+    backdrop.onclick = () => closeSidebar();
+  }
+
+  // Initial mobile check
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('sidebar') === '1') {
+    openSidebar();
+  } else if (window.innerWidth <= 900) {
+    closeSidebar();
+  }
+}
+
+window.addEventListener('resize', () => {
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (window.innerWidth > 900 && backdrop) {
+    backdrop.classList.remove('active');
+  }
+});
+
 /**
  * ENGLISH FOR TODAY (CLASSES XI-XII & ALIM) - INTERACTIVE E-BOOK ENGINE
  * Comprehensive Web Application for NCTB English For Today
@@ -272,6 +334,7 @@ function initElements() {
 // 4. MAIN INITIALIZATION
 function initApp() {
   initElements();
+  initMobileSidebar();
   loadSavedPreferences();
   
   if (window.BOOK_CONTENT_DATA) {

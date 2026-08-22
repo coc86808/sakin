@@ -116,7 +116,15 @@
     <!-- Main Container -->
     <div class="main-container">
       <!-- Collapsible Sidebar (TOC, Bookmarks, Notes & Highlights) -->
-      <aside class="sidebar" id="sidebar">
+      <aside class="sidebar collapsed" id="sidebar">
+        <div class="sidebar-mobile-header">
+          <div class="sidebar-mobile-title">
+            <i class="fa-solid fa-book-open"></i> English For Today
+          </div>
+          <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close Table of Contents">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
         <div class="sidebar-tabs">
           <button class="sidebar-tab active" data-tab="toc" title="Table of Contents">
             <i class="fa-solid fa-list-ul"></i> Units
@@ -175,6 +183,7 @@
           </div>
         </div>
       </aside>
+      <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
       <!-- Reader Viewport Canvas -->
       <section class="reader-viewport" id="readerViewport">
