@@ -1559,6 +1559,7 @@ function handleExamOptionSelection(pill, wordObj, isNotSure = false) {
     </div>
   `;
 
+  feedbackHtml += `
     <div class="dict-syn-ant-container" style="margin: 10px 0;">
       <div class="synonyms-card">
         <div class="syn-ant-title syn"><i class="fa-solid fa-arrow-right-arrow-left"></i> সমার্থক শব্দ (Synonyms)</div>
