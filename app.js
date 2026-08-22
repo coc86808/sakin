@@ -65,6 +65,68 @@ window.addEventListener('resize', () => {
  * Comprehensive Web Application for NCTB English For Today
  */
 
+
+/**
+ * Safe Storage Wrapper Helper Object
+ * Provides robust in-memory fallback dictionary if localStorage is restricted, disabled, or throws SecurityError in Incognito mode.
+ */
+const safeStorage = {
+  _memory: {},
+
+  get(key, defaultVal = null) {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const item = window.localStorage.getItem(key);
+        if (item === null || item === undefined) {
+          return key in this._memory ? this._memory[key] : defaultVal;
+        }
+        try {
+          return JSON.parse(item);
+        } catch (_) {
+          return item;
+        }
+      }
+    } catch (e) {
+      console.warn(`safeStorage.get notice for "${key}":`, e);
+    }
+    return key in this._memory ? this._memory[key] : defaultVal;
+  },
+
+  set(key, val) {
+    this._memory[key] = val;
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const serialized = typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val);
+        window.localStorage.setItem(key, serialized);
+      }
+    } catch (e) {
+      console.warn(`safeStorage.set notice for "${key}":`, e);
+    }
+  },
+
+  remove(key) {
+    delete this._memory[key];
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(key);
+      }
+    } catch (e) {
+      console.warn(`safeStorage.remove notice for "${key}":`, e);
+    }
+  },
+
+  clear() {
+    this._memory = {};
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.clear();
+      }
+    } catch (e) {
+      console.warn('safeStorage.clear notice:', e);
+    }
+  }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   initApp();
 });
@@ -89,9 +151,9 @@ const state = {
   quizLevel: 'all',
   quizUnit: 'all',
   quizLesson: 'all',
-  bookmarks: JSON.parse(localStorage.getItem('e4t_bookmarks') || '[]'),
-  notes: JSON.parse(localStorage.getItem('e4t_notes') || '[]'),
-  highlights: JSON.parse(localStorage.getItem('e4t_highlights') || '[]'),
+  bookmarks: safeStorage.get('e4t_bookmarks', []),
+  notes: safeStorage.get('e4t_notes', []),
+  highlights: safeStorage.get('e4t_highlights', []),
   speechSynth: window.speechSynthesis || null,
   currentUtterance: null,
   focusedTargetWord: ''
@@ -320,6 +382,116 @@ function initElements() {
     vocabStudioModal: document.getElementById('vocabStudioModal'),
     closeVocabModalBtn: document.getElementById('closeVocabModalBtn') || document.getElementById('vocabStudioClose')
   };
+}
+
+
+// 4. CORE PAGE NAVIGATION & RENDERING ENGINE
+function goToPage(pageNum, triggerFlip = true) {
+  if (!state.bookData || !state.bookData.pages) return;
+  
+  const total = state.totalPages || 295;
+  const validPage = Math.max(1, Math.min(pageNum, total));
+  state.currentPage = validPage;
+  
+  safeStorage.set('e4t_last_page', validPage);
+  
+  if (elements.currentPageBadge) elements.currentPageBadge.textContent = validPage;
+  if (elements.textPageNum) elements.textPageNum.textContent = validPage;
+  if (elements.textFooterNum) elements.textFooterNum.textContent = validPage;
+  if (elements.pageSlider) elements.pageSlider.value = validPage;
+  if (elements.pageJumpInput) elements.pageJumpInput.value = validPage;
+  
+  const pct = (validPage / total) * 100;
+  if (elements.readingProgressBar) elements.readingProgressBar.style.width = `${pct}%`;
+  
+  const pageObj = state.bookData.pages[validPage - 1] || { page_number: validPage, text: '' };
+  
+  updateContextBanner(pageObj);
+  updateReadingMetrics(pageObj.text);
+  renderTextContent(pageObj, triggerFlip);
+  
+  if (elements.originalPageImg) {
+    elements.originalPageImg.src = pageObj.image || `assets/pages/page_${validPage}.png`;
+  }
+  
+  applyUserHighlights(validPage);
+  updateActiveTOC(validPage);
+  
+  if (triggerFlip) {
+    AudioEngine.playPaperFlip();
+  }
+  
+  // Close mobile sidebar drawer if open
+  if (window.innerWidth <= 900 && elements.sidebar) {
+    elements.sidebar.classList.remove('open');
+    if (elements.sidebarBackdrop) elements.sidebarBackdrop.classList.remove('active');
+  }
+}
+
+function initApp() {
+  initElements();
+  initMobileSidebar();
+  loadSavedPreferences();
+  
+  if (window.BOOK_CONTENT_DATA) {
+    state.bookData = window.BOOK_CONTENT_DATA;
+    state.totalPages = state.bookData.total_pages || 295;
+    if (elements.pageSlider) elements.pageSlider.max = state.totalPages;
+  }
+  
+  initVocabQuiz();
+  renderTOC();
+  renderBookmarks();
+  renderNotes();
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const pageParam = parseInt(urlParams.get('page'), 10);
+  const modeParam = urlParams.get('mode');
+  const quizParam = urlParams.get('quiz');
+  const focusWordParam = urlParams.get('focus_word');
+  const dictParam = urlParams.get('dict');
+  const unitParam = urlParams.get('unit');
+  const lessonParam = urlParams.get('lesson');
+  
+  const savedPage = pageParam || parseInt(safeStorage.get('e4t_last_page', '7'), 10);
+  
+  if (modeParam && ['text', 'split', 'image'].includes(modeParam)) {
+    setViewMode(modeParam);
+  }
+
+  if (focusWordParam) {
+    state.focusedTargetWord = focusWordParam;
+  }
+  
+  goToPage(savedPage, false);
+
+  if (quizParam === '1' || quizParam === 'true') {
+    const uVal = unitParam ? unitParam : null;
+    const lVal = lessonParam ? lessonParam : null;
+    setTimeout(() => {
+      openVocabQuizModal(uVal, lVal);
+      if (urlParams.get('auto_start') === '1') {
+        startExam();
+      } else if (urlParams.get('analytics_preview') === '1') {
+        startExam();
+        state.examHistory = [
+          { questionIndex: 0, wordObj: state.examQuestions[0] || state.vocabList[0], selectedText: (state.examQuestions[0] || state.vocabList[0]).correctDefinition, isCorrect: true, timeSpentSeconds: 6.2 },
+          { questionIndex: 1, wordObj: state.examQuestions[1] || state.vocabList[1], selectedText: 'having colorful feathers and loud wings', isCorrect: false, timeSpentSeconds: 14.5 },
+          { questionIndex: 2, wordObj: state.examQuestions[2] || state.vocabList[2], selectedText: (state.examQuestions[2] || state.vocabList[2]).correctDefinition, isCorrect: true, timeSpentSeconds: 8.1 },
+          { questionIndex: 3, wordObj: state.examQuestions[3] || state.vocabList[3], selectedText: (state.examQuestions[3] || state.vocabList[3]).correctDefinition, isCorrect: true, timeSpentSeconds: 5.4 }
+        ];
+        state.examScore = 3;
+        state.examStartTime = Date.now() - 35000;
+        showExamAnalytics();
+      }
+    }, 100);
+  } else if (dictParam) {
+    setTimeout(() => lookupDictionary(dictParam), 150);
+  }
+
+  setupEventListeners();
+  setupTextSelectionEngine();
+  setupKeyboardShortcuts();
 }
 
 function updateContextBanner(pageObj) {
@@ -1876,14 +2048,14 @@ function toggleBookmark() {
     showToast(`Bookmarked Page ${printedPage}!`, 'success');
   }
 
-  localStorage.setItem('e4t_bookmarks', JSON.stringify(state.bookmarks));
+  safeStorage.set('e4t_bookmarks', state.bookmarks);
   updateBookmarkButtonState();
   renderBookmarks();
 }
 
 function removeBookmark(page) {
   state.bookmarks = state.bookmarks.filter(b => b.page !== page);
-  localStorage.setItem('e4t_bookmarks', JSON.stringify(state.bookmarks));
+  safeStorage.set('e4t_bookmarks', state.bookmarks);
   updateBookmarkButtonState();
   renderBookmarks();
 }
@@ -1982,7 +2154,7 @@ function applyHighlightColor(color) {
     date: new Date().toLocaleDateString()
   });
 
-  localStorage.setItem('e4t_highlights', JSON.stringify(state.highlights));
+  safeStorage.set('e4t_highlights', state.highlights);
   applyUserHighlights(page);
   showToast(`Highlighted in ${color}!`, 'success');
 
@@ -2033,7 +2205,7 @@ function savePersonalNote() {
     date: new Date().toLocaleDateString()
   });
 
-  localStorage.setItem('e4t_notes', JSON.stringify(state.notes));
+  safeStorage.set('e4t_notes', state.notes);
   renderNotes();
   if (elements.noteModal) elements.noteModal.classList.remove('open');
   showToast('Study note saved successfully!', 'success');
@@ -2065,7 +2237,7 @@ function renderNotes() {
 
 function deleteNote(id) {
   state.notes = state.notes.filter(n => n.id !== id);
-  localStorage.setItem('e4t_notes', JSON.stringify(state.notes));
+  safeStorage.set('e4t_notes', state.notes);
   renderNotes();
 }
 
@@ -2228,13 +2400,13 @@ function setViewMode(mode) {
     }
   }
 
-  localStorage.setItem('e4t_view_mode', mode);
+  safeStorage.set('e4t_view_mode', mode);
 }
 
 function applyTheme(themeName) {
   document.body.setAttribute('data-theme', themeName);
   state.currentTheme = themeName;
-  localStorage.setItem('e4t_theme', themeName);
+  safeStorage.set('e4t_theme', themeName);
 
   document.querySelectorAll('.theme-opt-btn').forEach(btn => {
     if (btn.dataset.theme === themeName) btn.classList.add('active');
@@ -2246,33 +2418,31 @@ function applyFontSize(size) {
   state.fontSize = size;
   document.documentElement.style.setProperty('--font-reader-size', `${size}px`);
   if (elements.fontSizeVal) elements.fontSizeVal.textContent = `${size}px`;
-  localStorage.setItem('e4t_font_size', size);
+  safeStorage.set('e4t_font_size', size);
 }
 
 function applyLineHeight(lh) {
   state.lineHeight = lh;
   document.documentElement.style.setProperty('--line-height-reader', lh);
   if (elements.lineHeightVal) elements.lineHeightVal.textContent = `${lh}x`;
-  localStorage.setItem('e4t_line_height', lh);
+  safeStorage.set('e4t_line_height', lh);
 }
 
 function loadSavedPreferences() {
-  const savedTheme = localStorage.getItem('e4t_theme') || 'dark';
+  const savedTheme = safeStorage.get('e4t_theme', 'midnight');
   applyTheme(savedTheme);
 
-  const savedSize = parseInt(localStorage.getItem('e4t_font_size') || '18', 10);
+  const savedSize = parseInt(safeStorage.get('e4t_font_size', '18'), 10);
   applyFontSize(savedSize);
   if (elements.fontSizeSlider) elements.fontSizeSlider.value = savedSize;
 
-  const savedLh = parseFloat(localStorage.getItem('e4t_line_height') || '1.8');
+  const savedLh = parseFloat(safeStorage.get('e4t_line_height', '1.8'));
   applyLineHeight(savedLh);
   if (elements.lineHeightSlider) elements.lineHeightSlider.value = savedLh;
 
-  const savedSound = localStorage.getItem('e4t_sound_effects');
-  if (savedSound !== null) {
-    state.soundEnabled = savedSound === 'true';
-    if (elements.soundEffectsToggle) elements.soundEffectsToggle.checked = state.soundEnabled;
-  }
+  const savedSound = safeStorage.get('e4t_sound_effects', 'true');
+  state.soundEnabled = savedSound === 'true' || savedSound === true;
+  if (elements.soundEffectsToggle) elements.soundEffectsToggle.checked = state.soundEnabled;
 }
 
 function showToast(msg, type = 'info') {
@@ -2640,8 +2810,8 @@ function setupEventListeners() {
       if (confirm('Clear all saved notes and highlights?')) {
         state.notes = [];
         state.highlights = [];
-        localStorage.removeItem('e4t_notes');
-        localStorage.removeItem('e4t_highlights');
+        safeStorage.remove('e4t_notes');
+        safeStorage.remove('e4t_highlights');
         renderNotes();
         applyUserHighlights(state.currentPage);
         showToast('All notes and highlights cleared', 'info');
