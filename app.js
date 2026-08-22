@@ -204,11 +204,11 @@ let elements = {};
 function initElements() {
   elements = {
     // Navigation & Context
-    prevBtn: document.getElementById('prevBtn'),
-    nextBtn: document.getElementById('nextBtn'),
+    prevBtn: document.getElementById('prevPageBtn') || document.getElementById('prevBtn'),
+    nextBtn: document.getElementById('nextPageBtn') || document.getElementById('nextBtn'),
     pageSlider: document.getElementById('pageSlider'),
-    pageJumpInput: document.getElementById('pageJumpInput'),
-    pageJumpBtn: document.getElementById('pageJumpBtn'),
+    pageJumpInput: document.getElementById('pageNumberInput') || document.getElementById('pageJumpInput'),
+    pageJumpBtn: document.getElementById('jumpBtn') || document.getElementById('pageJumpBtn'),
     currentPageBadge: document.getElementById('currentPageBadge'),
     readingProgressBar: document.getElementById('readingProgressBar'),
     contextUnit: document.getElementById('contextUnit'),
@@ -219,6 +219,7 @@ function initElements() {
     textFooterNum: document.getElementById('textFooterNum'),
 
     // Containers & Viewports
+    appLayout: document.getElementById('appLayout'),
     readerViewport: document.getElementById('readerViewport'),
     readerStage: document.getElementById('readerStage'),
     textViewContainer: document.getElementById('textViewContainer'),
@@ -228,23 +229,34 @@ function initElements() {
     originalPageImg: document.getElementById('originalPageImg'),
 
     // View Mode Buttons
-    btnModeText: document.getElementById('btnModeText'),
-    btnModeSplit: document.getElementById('btnModeSplit'),
-    btnModeImage: document.getElementById('btnModeImage'),
+    btnModeText: document.querySelector('.mode-btn[data-mode="text"]') || document.getElementById('btnModeText'),
+    btnModeSplit: document.querySelector('.mode-btn[data-mode="split"]') || document.getElementById('btnModeSplit'),
+    btnModeImage: document.querySelector('.mode-btn[data-mode="image"]') || document.getElementById('btnModeImage'),
 
     // Audio & Narration
-    audioPlayBtn: document.getElementById('audioPlayBtn'),
+    audioPlayBtn: document.getElementById('ttsPlayBtn') || document.getElementById('audioPlayBtn'),
     audioStopBtn: document.getElementById('audioStopBtn'),
     ttsRateSelect: document.getElementById('ttsRateSelect'),
 
+    // Top Action Buttons
+    openVocabQuizBtn: document.getElementById('openVocabQuizBtn') || document.getElementById('vocabQuizTriggerBtn'),
+    openSearchBtn: document.getElementById('openSearchBtn') || document.getElementById('searchTriggerBtn'),
+    toggleAppearanceBtn: document.getElementById('toggleAppearanceBtn') || document.getElementById('settingsTriggerBtn'),
+    bookmarkBtn: document.getElementById('bookmarkBtn') || document.getElementById('bookmarkTriggerBtn'),
+    printPageBtn: document.getElementById('printPageBtn'),
+    fullscreenBtn: document.getElementById('fullscreenBtn'),
+    shortcutsBtn: document.getElementById('shortcutsBtn') || document.getElementById('shortcutsTriggerBtn'),
+
     // Sidebar & Navigation Panels
     sidebar: document.getElementById('sidebar'),
-    sidebarToggleBtn: document.getElementById('sidebarToggleBtn'),
-    tabUnitsBtn: document.getElementById('tabUnitsBtn'),
-    tabBookmarksBtn: document.getElementById('tabBookmarksBtn'),
-    tabNotesBtn: document.getElementById('tabNotesBtn'),
-    tabVocabBtn: document.getElementById('tabVocabBtn'),
-    paneUnits: document.getElementById('paneUnits'),
+    sidebarBackdrop: document.getElementById('sidebarBackdrop'),
+    sidebarCloseBtn: document.getElementById('sidebarCloseBtn'),
+    sidebarToggleBtn: document.getElementById('toggleSidebarBtn') || document.getElementById('sidebarToggleBtn'),
+    tabUnitsBtn: document.querySelector('.sidebar-tab[data-tab="toc"]') || document.getElementById('tabUnitsBtn'),
+    tabBookmarksBtn: document.querySelector('.sidebar-tab[data-tab="bookmarks"]') || document.getElementById('tabBookmarksBtn'),
+    tabNotesBtn: document.querySelector('.sidebar-tab[data-tab="notes"]') || document.getElementById('tabNotesBtn'),
+    tabVocabBtn: document.querySelector('.sidebar-tab[data-tab="vocab"]') || document.getElementById('tabVocabBtn'),
+    paneUnits: document.getElementById('paneTOC') || document.getElementById('paneUnits'),
     paneBookmarks: document.getElementById('paneBookmarks'),
     paneNotes: document.getElementById('paneNotes'),
     paneVocab: document.getElementById('paneVocab'),
@@ -257,228 +269,57 @@ function initElements() {
     launchVocabStudioBtn: document.getElementById('launchVocabStudioBtn'),
     clearAllNotesBtn: document.getElementById('clearAllNotesBtn'),
 
-    // Search Engine
-    searchModal: document.getElementById('searchModal'),
-    searchModalBackdrop: document.getElementById('searchModalBackdrop'),
-    searchModalClose: document.getElementById('searchModalClose'),
-    searchTriggerBtn: document.getElementById('searchTriggerBtn'),
-    globalSearchInput: document.getElementById('globalSearchInput'),
-    searchClearBtn: document.getElementById('searchClearBtn'),
-    searchResultsList: document.getElementById('searchResultsList'),
-
-    // Settings & Personalization
-    settingsModal: document.getElementById('settingsModal'),
-    settingsModalBackdrop: document.getElementById('settingsModalBackdrop'),
-    settingsModalClose: document.getElementById('settingsModalClose'),
-    settingsTriggerBtn: document.getElementById('settingsTriggerBtn'),
+    // Appearance / Settings Panel
+    appearancePanel: document.getElementById('appearancePanel'),
+    closeAppearanceBtn: document.getElementById('closeAppearanceBtn'),
     fontSizeSlider: document.getElementById('fontSizeSlider'),
     fontSizeVal: document.getElementById('fontSizeVal'),
-    lineHeightSlider: document.getElementById('lineHeightSlider'),
-    lineHeightVal: document.getElementById('lineHeightVal'),
-    soundEffectsToggle: document.getElementById('soundEffectsToggle'),
+    decFontBtn: document.getElementById('decFontBtn'),
+    incFontBtn: document.getElementById('incFontBtn'),
 
-    // Modals: Notes, Dictionary, Shortcuts, Vocab Studio
-    bookmarkTriggerBtn: document.getElementById('bookmarkTriggerBtn'),
-    noteModal: document.getElementById('noteModal'),
-    noteModalBackdrop: document.getElementById('noteModalBackdrop'),
-    noteModalClose: document.getElementById('noteModalClose'),
-    noteQuotePreview: document.getElementById('noteQuotePreview'),
-    noteInput: document.getElementById('noteInput'),
-    saveNoteBtn: document.getElementById('saveNoteBtn'),
-    textSelectionMenu: document.getElementById('textSelectionMenu'),
-    selDefineBtn: document.getElementById('selDefineBtn'),
-    selHighlightYellow: document.getElementById('selHighlightYellow'),
-    selHighlightGreen: document.getElementById('selHighlightGreen'),
-    selHighlightPink: document.getElementById('selHighlightPink'),
-    selAddNoteBtn: document.getElementById('selAddNoteBtn'),
+    // Search Engine Modal
+    searchModal: document.getElementById('searchModal'),
+    searchInput: document.getElementById('searchInput') || document.getElementById('globalSearchInput'),
+    clearSearchBtn: document.getElementById('clearSearchBtn') || document.getElementById('searchClearBtn'),
+    closeSearchBtn: document.getElementById('closeSearchBtn') || document.getElementById('searchModalClose'),
+    searchResultsContainer: document.getElementById('searchResultsContainer') || document.getElementById('searchResultsList'),
 
+    // Dictionary Modal
     dictionaryModal: document.getElementById('dictionaryModal'),
-    dictionaryModalBackdrop: document.getElementById('dictionaryModalBackdrop'),
-    dictionaryModalClose: document.getElementById('dictionaryModalClose'),
+    closeDictBtn: document.getElementById('closeDictBtn') || document.getElementById('dictionaryModalClose'),
     dictWordTitle: document.getElementById('dictWordTitle'),
     dictPhonetic: document.getElementById('dictPhonetic'),
     dictSpeakBtn: document.getElementById('dictSpeakBtn'),
     dictModalBody: document.getElementById('dictModalBody'),
     quickDefineHintBtn: document.getElementById('quickDefineHintBtn'),
 
+    // Shortcuts Modal
     shortcutsModal: document.getElementById('shortcutsModal'),
-    shortcutsModalBackdrop: document.getElementById('shortcutsModalBackdrop'),
-    shortcutsModalClose: document.getElementById('shortcutsModalClose'),
-    shortcutsTriggerBtn: document.getElementById('shortcutsTriggerBtn'),
+    closeShortcutsBtn: document.getElementById('closeShortcutsBtn') || document.getElementById('shortcutsModalClose'),
 
+    // Notes Modal
+    noteModal: document.getElementById('noteModal'),
+    noteQuotePreview: document.getElementById('noteQuotePreview'),
+    noteInput: document.getElementById('noteInput'),
+    saveNoteBtn: document.getElementById('saveNoteBtn'),
+    cancelNoteBtn: document.getElementById('cancelNoteBtn'),
+    closeNoteModalBtn: document.getElementById('closeNoteModalBtn') || document.getElementById('noteModalClose'),
+
+    // Text Selection Floating Bubble
+    textSelectionMenu: document.getElementById('textSelectionMenu'),
+    selDefineBtn: document.getElementById('selDefineBtn'),
+    selAddNoteBtn: document.getElementById('selAddNoteBtn'),
+    selSpeakBtn: document.getElementById('selSpeakBtn'),
+
+    // Zoom Controls
+    zoomOutBtn: document.getElementById('zoomOutBtn'),
+    zoomResetBtn: document.getElementById('zoomResetBtn'),
+    zoomInBtn: document.getElementById('zoomInBtn'),
+
+    // Vocab Studio Modal
     vocabStudioModal: document.getElementById('vocabStudioModal'),
-    vocabStudioBackdrop: document.getElementById('vocabStudioBackdrop'),
-    vocabStudioClose: document.getElementById('vocabStudioClose'),
-    vocabQuizTriggerBtn: document.getElementById('vocabQuizTriggerBtn'),
-    vUnitSelect: document.getElementById('vUnitSelect'),
-    vLessonSelect: document.getElementById('vLessonSelect'),
-    vCurrentWordIndex: document.getElementById('vCurrentWordIndex'),
-    vTotalWordsCount: document.getElementById('vTotalWordsCount'),
-    vCurrentScore: document.getElementById('vCurrentScore'),
-    vQuizProgressBar: document.getElementById('vQuizProgressBar'),
-    vQuestionCard: document.getElementById('vQuestionCard'),
-    vWordBadge: document.getElementById('vWordBadge'),
-    vTargetWord: document.getElementById('vTargetWord'),
-    vSpeakWordBtn: document.getElementById('vSpeakWordBtn'),
-    vocabOptionsContainer: document.getElementById('vocabOptionsContainer'),
-    vocabFeedbackCard: document.getElementById('vocabFeedbackCard'),
-    vFeedbackBanner: document.getElementById('vFeedbackBanner'),
-    vNextWordBtn: document.getElementById('vNextWordBtn'),
-    vResultsScreen: document.getElementById('vResultsScreen'),
-    vFinalScore: document.getElementById('vFinalScore'),
-    vPerformanceMsg: document.getElementById('vPerformanceMsg'),
-    vRestartQuizBtn: document.getElementById('vRestartQuizBtn')
+    closeVocabModalBtn: document.getElementById('closeVocabModalBtn') || document.getElementById('vocabStudioClose')
   };
-}
-
-// 4. MAIN INITIALIZATION
-function initApp() {
-  initElements();
-  initMobileSidebar();
-  loadSavedPreferences();
-  
-  if (window.BOOK_CONTENT_DATA) {
-    state.bookData = window.BOOK_CONTENT_DATA;
-    state.totalPages = state.bookData.total_pages || 295;
-    if (elements.pageSlider) elements.pageSlider.max = state.totalPages;
-  }
-  
-  initVocabQuiz();
-  renderTOC();
-  renderBookmarks();
-  renderNotes();
-  
-  const urlParams = new URLSearchParams(window.location.search);
-  const pageParam = parseInt(urlParams.get('page'), 10);
-  const modeParam = urlParams.get('mode');
-  const quizParam = urlParams.get('quiz');
-  const focusWordParam = urlParams.get('focus_word');
-  const dictParam = urlParams.get('dict');
-  const unitParam = urlParams.get('unit');
-  const lessonParam = urlParams.get('lesson');
-  
-  const savedPage = pageParam || parseInt(localStorage.getItem('e4t_last_page') || '7', 10);
-  
-  if (modeParam && ['text', 'split', 'image'].includes(modeParam)) {
-    setViewMode(modeParam);
-  }
-
-  if (focusWordParam) {
-    state.focusedTargetWord = focusWordParam;
-  }
-  
-  goToPage(savedPage, false);
-
-  if (quizParam === '1' || quizParam === 'true') {
-    const uVal = unitParam ? unitParam : null;
-    const lVal = lessonParam ? lessonParam : null;
-    setTimeout(() => {
-      openVocabQuizModal(uVal, lVal);
-      if (urlParams.get('auto_start') === '1') {
-        startExam();
-      } else if (urlParams.get('analytics_preview') === '1') {
-        startExam();
-        // Simulate answering questions with 3 correct and 1 wrong
-        state.examHistory = [
-          { questionIndex: 0, wordObj: state.examQuestions[0] || state.vocabList[0], selectedText: (state.examQuestions[0] || state.vocabList[0]).correctDefinition, isCorrect: true, timeSpentSeconds: 6.2 },
-          { questionIndex: 1, wordObj: state.examQuestions[1] || state.vocabList[1], selectedText: 'having colorful feathers and loud wings', isCorrect: false, timeSpentSeconds: 14.5 },
-          { questionIndex: 2, wordObj: state.examQuestions[2] || state.vocabList[2], selectedText: (state.examQuestions[2] || state.vocabList[2]).correctDefinition, isCorrect: true, timeSpentSeconds: 8.1 },
-          { questionIndex: 3, wordObj: state.examQuestions[3] || state.vocabList[3], selectedText: (state.examQuestions[3] || state.vocabList[3]).correctDefinition, isCorrect: true, timeSpentSeconds: 5.4 }
-        ];
-        state.examScore = 3;
-        state.examStartTime = Date.now() - 35000;
-        showExamAnalytics();
-      }
-    }, 100);
-  } else if (dictParam) {
-    setTimeout(() => lookupDictionary(dictParam), 150);
-  }
-
-  setupEventListeners();
-  setupTextSelectionEngine();
-  setupKeyboardShortcuts();
-}
-
-function escapeRegExp(string) {
-  if (!string) return '';
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function highlightSearchTerm(text) {
-  if (!state.activeSearchTerm || !text) return text;
-  const pattern = new RegExp('(' + escapeRegExp(state.activeSearchTerm) + ')', 'gi');
-  return text.replace(pattern, '<mark class="search-highlight">$1</mark>');
-}
-
-function highlightTargetVocabInText(text, vocabList) {
-  if (!text || !vocabList || vocabList.length === 0) return text;
-  const pattern = new RegExp('\\b(' + vocabList.map(w => escapeRegExp(w)).join('|') + ')\\b', 'gi');
-  return text.replace(pattern, '<mark class="vocab-target-highlight" title="Target Vocabulary Word for Exercises">$1</mark>');
-}
-
-function cleanOcrText(str) {
-  if (!str) return '';
-  return str
-    .replace(/\bY%at\b/gi, 'What')
-    .replace(/\bRhona\b/g, 'Khona')
-    .replace(/\bLhe\b/g, 'The')
-    .replace(/\bIcarua\b/g, 'Icarus')
-    .replace(/â€œ|â€\x9d|“|”/g, '"')
-    .replace(/â€˜|â€™|‘|’/g, "'")
-    .replace(/â€”|—/g, ' — ');
-}
-
-function formatLinksInText(text) {
-  if (!text) return '';
-  const urlPattern = /(https?:\/\/[^\s\)]+)/g;
-  return text.replace(urlPattern, '<a href="$1" target="_blank" rel="noopener noreferrer" class="book-resource-link"><i class="fa-solid fa-arrow-up-right-from-square"></i> $1</a>');
-}
-
-// 5. CORE PAGE RENDERER
-function goToPage(pageNum, triggerFlipAnim = true) {
-  pageNum = Math.max(1, Math.min(pageNum, state.totalPages));
-  state.currentPage = pageNum;
-  localStorage.setItem('e4t_last_page', pageNum);
-  
-  stopAudio();
-
-  if (triggerFlipAnim) {
-    AudioEngine.playPaperFlip();
-  }
-
-  const pageObj = (state.bookData && state.bookData.pages) ? state.bookData.pages[pageNum - 1] : null;
-  const printedNum = pageObj ? (pageObj.printed_page_number || (pageNum >= 7 ? pageNum - 6 : pageNum)) : pageNum;
-
-  if (elements.pageJumpInput) elements.pageJumpInput.value = pageNum;
-  if (elements.pageSlider) elements.pageSlider.value = pageNum;
-  if (elements.currentPageBadge) elements.currentPageBadge.textContent = printedNum;
-  if (elements.textPageNum) elements.textPageNum.textContent = `Page ${printedNum}`;
-  if (elements.textFooterNum) elements.textFooterNum.textContent = `Page ${printedNum}`;
-  
-  const progressPct = ((pageNum - 1) / (state.totalPages - 1)) * 100;
-  if (elements.readingProgressBar) elements.readingProgressBar.style.width = `${progressPct}%`;
-  
-  updateBookmarkButtonState();
-  
-  if (!pageObj) return;
-  
-  updateContextBanner(pageObj);
-  renderTextContent(pageObj, triggerFlipAnim);
-  updateReadingMetrics(pageObj.text || '');
-
-  highlightActiveTOC(pageNum);
-  applyUserHighlights(pageNum);
-
-  if (elements.originalPageImg && (state.viewMode === 'image' || state.viewMode === 'split')) {
-    elements.originalPageImg.src = pageObj.image || `assets/pages/page_${pageNum}.png`;
-  }
-
-  if (state.focusedTargetWord) {
-    const wordToFocus = state.focusedTargetWord;
-    state.focusedTargetWord = '';
-    setTimeout(() => focusWordInRenderedPage(wordToFocus), 50);
-    setTimeout(() => focusWordInRenderedPage(wordToFocus), 250);
-  }
 }
 
 function updateContextBanner(pageObj) {
@@ -2449,9 +2290,20 @@ function showToast(msg, type = 'info') {
 
 // 14. EVENT LISTENERS SETUP
 function setupEventListeners() {
-  // Page Navigation
-  if (elements.prevBtn) elements.prevBtn.onclick = () => goToPage(state.currentPage - 1);
-  if (elements.nextBtn) elements.nextBtn.onclick = () => goToPage(state.currentPage + 1);
+  // 1. Page Navigation (Previous / Next / Slider / Jump Input)
+  if (elements.prevBtn) {
+    elements.prevBtn.onclick = (e) => {
+      e.preventDefault();
+      goToPage(state.currentPage - 1);
+    };
+  }
+
+  if (elements.nextBtn) {
+    elements.nextBtn.onclick = (e) => {
+      e.preventDefault();
+      goToPage(state.currentPage + 1);
+    };
+  }
 
   if (elements.pageSlider) {
     elements.pageSlider.oninput = (e) => {
@@ -2460,123 +2312,331 @@ function setupEventListeners() {
   }
 
   if (elements.pageJumpBtn && elements.pageJumpInput) {
-    elements.pageJumpBtn.onclick = () => {
+    elements.pageJumpBtn.onclick = (e) => {
+      e.preventDefault();
       const pageVal = parseInt(elements.pageJumpInput.value, 10);
       if (!isNaN(pageVal)) goToPage(pageVal);
     };
+  }
+
+  if (elements.pageJumpInput) {
     elements.pageJumpInput.onkeydown = (e) => {
       if (e.key === 'Enter') {
+        e.preventDefault();
         const pageVal = parseInt(elements.pageJumpInput.value, 10);
         if (!isNaN(pageVal)) goToPage(pageVal);
       }
     };
   }
 
-  // View Mode
-  if (elements.btnModeText) elements.btnModeText.onclick = () => setViewMode('text');
-  if (elements.btnModeSplit) elements.btnModeSplit.onclick = () => setViewMode('split');
-  if (elements.btnModeImage) elements.btnModeImage.onclick = () => setViewMode('image');
+  // 2. View Mode Switchers (Formatted Text / Split / Image)
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      const mode = btn.dataset.mode || 'text';
+      setViewMode(mode);
+    };
+  });
 
-  // Audio Playback
-  if (elements.audioPlayBtn) elements.audioPlayBtn.onclick = togglePlayAudio;
-  if (elements.audioStopBtn) elements.audioStopBtn.onclick = stopAudio;
-
-  // Sidebar Toggles & Tabs
-  if (elements.sidebarToggleBtn) {
-    elements.sidebarToggleBtn.onclick = () => {
-      if (elements.sidebar) elements.sidebar.classList.toggle('collapsed');
+  // 3. Audio Read Aloud
+  if (elements.audioPlayBtn) {
+    elements.audioPlayBtn.onclick = (e) => {
+      e.preventDefault();
+      togglePlayAudio();
     };
   }
 
-  const switchSidebarTab = (btn, paneId) => {
-    [elements.tabUnitsBtn, elements.tabBookmarksBtn, elements.tabNotesBtn, elements.tabVocabBtn].forEach(b => {
-      if (b) b.classList.remove('active');
-    });
-    [elements.paneUnits, elements.paneBookmarks, elements.paneNotes, elements.paneVocab].forEach(p => {
-      if (p) p.classList.remove('active');
-    });
-
-    if (btn) btn.classList.add('active');
-    const targetPane = document.getElementById(paneId);
-    if (targetPane) targetPane.classList.add('active');
-  };
-
-  if (elements.tabUnitsBtn) elements.tabUnitsBtn.onclick = () => switchSidebarTab(elements.tabUnitsBtn, 'paneUnits');
-  if (elements.tabBookmarksBtn) elements.tabBookmarksBtn.onclick = () => switchSidebarTab(elements.tabBookmarksBtn, 'paneBookmarks');
-  if (elements.tabNotesBtn) elements.tabNotesBtn.onclick = () => switchSidebarTab(elements.tabNotesBtn, 'paneNotes');
-  if (elements.tabVocabBtn) elements.tabVocabBtn.onclick = () => switchSidebarTab(elements.tabVocabBtn, 'paneVocab');
-
-  // Bookmark Trigger
-  if (elements.bookmarkTriggerBtn) elements.bookmarkTriggerBtn.onclick = toggleBookmark;
-
-  // Search Modal Triggers
-  if (elements.searchTriggerBtn) elements.searchTriggerBtn.onclick = openSearchModal;
-  if (elements.searchModalClose) elements.searchModalClose.onclick = closeSearchModal;
-  if (elements.searchModalBackdrop) elements.searchModalBackdrop.onclick = closeSearchModal;
-
-  if (elements.globalSearchInput) {
-    elements.globalSearchInput.oninput = (e) => performGlobalSearch(e.target.value.trim());
-  }
-  if (elements.searchClearBtn) {
-    elements.searchClearBtn.onclick = () => {
-      if (elements.globalSearchInput) {
-        elements.globalSearchInput.value = '';
-        elements.globalSearchInput.focus();
-        performGlobalSearch('');
+  if (elements.ttsRateSelect) {
+    elements.ttsRateSelect.onchange = () => {
+      if (state.audioPlaying) {
+        stopAudio();
+        togglePlayAudio();
       }
     };
   }
 
-  // Settings Modal Triggers
-  if (elements.settingsTriggerBtn) {
-    elements.settingsTriggerBtn.onclick = () => {
-      if (elements.settingsModal) elements.settingsModal.classList.add('open');
-    };
-  }
-  if (elements.settingsModalClose) {
-    elements.settingsModalClose.onclick = () => {
-      if (elements.settingsModal) elements.settingsModal.classList.remove('open');
-    };
-  }
-  if (elements.settingsModalBackdrop) {
-    elements.settingsModalBackdrop.onclick = () => {
-      if (elements.settingsModal) elements.settingsModal.classList.remove('open');
+  // 4. Sidebar Toggle & Mobile Drawer
+  if (elements.sidebarToggleBtn) {
+    elements.sidebarToggleBtn.onclick = (e) => {
+      e.preventDefault();
+      if (elements.sidebar) {
+        elements.sidebar.classList.toggle('open');
+        elements.sidebar.classList.toggle('collapsed');
+      }
+      if (elements.sidebarBackdrop) {
+        elements.sidebarBackdrop.classList.toggle('active');
+      }
     };
   }
 
-  // Theme Selectors
-  document.querySelectorAll('.theme-opt-btn').forEach(btn => {
-    btn.onclick = () => applyTheme(btn.dataset.theme);
+  if (elements.sidebarCloseBtn) {
+    elements.sidebarCloseBtn.onclick = (e) => {
+      e.preventDefault();
+      if (elements.sidebar) {
+        elements.sidebar.classList.remove('open');
+      }
+      if (elements.sidebarBackdrop) {
+        elements.sidebarBackdrop.classList.remove('active');
+      }
+    };
+  }
+
+  if (elements.sidebarBackdrop) {
+    elements.sidebarBackdrop.onclick = () => {
+      if (elements.sidebar) elements.sidebar.classList.remove('open');
+      elements.sidebarBackdrop.classList.remove('active');
+    };
+  }
+
+  // 5. Sidebar Tabs (Units, Bookmarks, Notes, Vocab)
+  const allTabs = document.querySelectorAll('.sidebar-tab');
+  const allPanes = [elements.paneUnits, elements.paneBookmarks, elements.paneNotes, elements.paneVocab];
+
+  allTabs.forEach(tab => {
+    tab.onclick = (e) => {
+      e.preventDefault();
+      allTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      const targetTabName = tab.dataset.tab;
+      const tabPaneMap = {
+        'toc': elements.paneUnits,
+        'bookmarks': elements.paneBookmarks,
+        'notes': elements.paneNotes,
+        'vocab': elements.paneVocab
+      };
+
+      allPanes.forEach(p => { if (p) p.classList.remove('active'); });
+      const targetPane = tabPaneMap[targetTabName];
+      if (targetPane) targetPane.classList.add('active');
+    };
   });
 
-  // Font & Line Height
-  if (elements.fontSizeSlider) {
-    elements.fontSizeSlider.oninput = (e) => applyFontSize(parseInt(e.target.value, 10));
-  }
-  if (elements.lineHeightSlider) {
-    elements.lineHeightSlider.oninput = (e) => applyLineHeight(parseFloat(e.target.value));
-  }
-  if (elements.soundEffectsToggle) {
-    elements.soundEffectsToggle.onchange = (e) => {
-      state.soundEnabled = e.target.checked;
-      localStorage.setItem('e4t_sound_effects', state.soundEnabled);
+  // 6. Header Actions: Vocab Quiz, Search, Appearance, Bookmark, Print, Fullscreen, Shortcuts
+  if (elements.openVocabQuizBtn) {
+    elements.openVocabQuizBtn.onclick = (e) => {
+      e.preventDefault();
+      openVocabQuizModal();
     };
   }
 
-  // Notes Modal
-  if (elements.saveNoteBtn) elements.saveNoteBtn.onclick = savePersonalNote;
-  if (elements.noteModalClose) {
-    elements.noteModalClose.onclick = () => {
-      if (elements.noteModal) elements.noteModal.classList.remove('open');
+  if (elements.launchVocabStudioBtn) {
+    elements.launchVocabStudioBtn.onclick = (e) => {
+      e.preventDefault();
+      openVocabQuizModal();
     };
   }
-  if (elements.noteModalBackdrop) {
-    elements.noteModalBackdrop.onclick = () => {
-      if (elements.noteModal) elements.noteModal.classList.remove('open');
+
+  if (elements.closeVocabModalBtn) {
+    elements.closeVocabModalBtn.onclick = (e) => {
+      e.preventDefault();
+      if (elements.vocabStudioModal) elements.vocabStudioModal.classList.remove('open');
     };
   }
+
+  if (elements.openSearchBtn) {
+    elements.openSearchBtn.onclick = (e) => {
+      e.preventDefault();
+      openSearchModal();
+    };
+  }
+
+  if (elements.closeSearchBtn) {
+    elements.closeSearchBtn.onclick = (e) => {
+      e.preventDefault();
+      closeSearchModal();
+    };
+  }
+
+  if (elements.clearSearchBtn && elements.searchInput) {
+    elements.clearSearchBtn.onclick = (e) => {
+      e.preventDefault();
+      elements.searchInput.value = '';
+      elements.searchInput.focus();
+      performGlobalSearch('');
+    };
+  }
+
+  if (elements.searchInput) {
+    elements.searchInput.oninput = (e) => {
+      performGlobalSearch(e.target.value.trim());
+    };
+  }
+
+  if (elements.searchModal) {
+    elements.searchModal.onclick = (e) => {
+      if (e.target === elements.searchModal) closeSearchModal();
+    };
+  }
+
+  // 7. Appearance Panel
+  if (elements.toggleAppearanceBtn) {
+    elements.toggleAppearanceBtn.onclick = (e) => {
+      e.preventDefault();
+      if (elements.appearancePanel) elements.appearancePanel.classList.toggle('open');
+    };
+  }
+
+  if (elements.closeAppearanceBtn) {
+    elements.closeAppearanceBtn.onclick = (e) => {
+      e.preventDefault();
+      if (elements.appearancePanel) elements.appearancePanel.classList.remove('open');
+    };
+  }
+
+  // Themes
+  document.querySelectorAll('.theme-option').forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.theme-option').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyTheme(btn.dataset.theme);
+    };
+  });
+
+  // Fonts
+  document.querySelectorAll('.font-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.font-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyFontFamily(btn.dataset.font);
+    };
+  });
+
+  // Font Size Slider & Buttons
+  if (elements.fontSizeSlider) {
+    elements.fontSizeSlider.oninput = (e) => {
+      applyFontSize(parseInt(e.target.value, 10));
+    };
+  }
+
+  if (elements.decFontBtn && elements.fontSizeSlider) {
+    elements.decFontBtn.onclick = () => {
+      let val = parseInt(elements.fontSizeSlider.value, 10) - 1;
+      if (val >= 14) {
+        elements.fontSizeSlider.value = val;
+        applyFontSize(val);
+      }
+    };
+  }
+
+  if (elements.incFontBtn && elements.fontSizeSlider) {
+    elements.incFontBtn.onclick = () => {
+      let val = parseInt(elements.fontSizeSlider.value, 10) + 1;
+      if (val <= 28) {
+        elements.fontSizeSlider.value = val;
+        applyFontSize(val);
+      }
+    };
+  }
+
+  // Line Spacing
+  document.querySelectorAll('.spacing-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.spacing-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyLineHeight(parseFloat(btn.dataset.lh));
+    };
+  });
+
+  // 8. Bookmark Button
+  if (elements.bookmarkBtn) {
+    elements.bookmarkBtn.onclick = (e) => {
+      e.preventDefault();
+      toggleBookmark();
+    };
+  }
+
+  // 9. Print PDF
+  if (elements.printPageBtn) {
+    elements.printPageBtn.onclick = (e) => {
+      e.preventDefault();
+      window.print();
+    };
+  }
+
+  // 10. Fullscreen Toggle
+  if (elements.fullscreenBtn) {
+    elements.fullscreenBtn.onclick = (e) => {
+      e.preventDefault();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    };
+  }
+
+  // 11. Shortcuts Modal
+  if (elements.shortcutsBtn) {
+    elements.shortcutsBtn.onclick = (e) => {
+      e.preventDefault();
+      if (elements.shortcutsModal) elements.shortcutsModal.classList.add('open');
+    };
+  }
+
+  if (elements.closeShortcutsBtn) {
+    elements.closeShortcutsBtn.onclick = (e) => {
+      e.preventDefault();
+      if (elements.shortcutsModal) elements.shortcutsModal.classList.remove('open');
+    };
+  }
+
+  if (elements.shortcutsModal) {
+    elements.shortcutsModal.onclick = (e) => {
+      if (e.target === elements.shortcutsModal) elements.shortcutsModal.classList.remove('open');
+    };
+  }
+
+  // 12. Dictionary Modal
+  if (elements.closeDictBtn) {
+    elements.closeDictBtn.onclick = (e) => {
+      e.preventDefault();
+      if (elements.dictionaryModal) elements.dictionaryModal.classList.remove('open');
+    };
+  }
+
+  if (elements.quickDefineHintBtn) {
+    elements.quickDefineHintBtn.onclick = (e) => {
+      e.preventDefault();
+      lookupDictionary('unlettered');
+    };
+  }
+
+  if (elements.dictionaryModal) {
+    elements.dictionaryModal.onclick = (e) => {
+      if (e.target === elements.dictionaryModal) elements.dictionaryModal.classList.remove('open');
+    };
+  }
+
+  // 13. Notes Modal
+  if (elements.saveNoteBtn) {
+    elements.saveNoteBtn.onclick = (e) => {
+      e.preventDefault();
+      savePersonalNote();
+    };
+  }
+
+  if (elements.cancelNoteBtn || elements.closeNoteModalBtn) {
+    const closeNote = (e) => {
+      if (e) e.preventDefault();
+      if (elements.noteModal) elements.noteModal.classList.remove('open');
+    };
+    if (elements.cancelNoteBtn) elements.cancelNoteBtn.onclick = closeNote;
+    if (elements.closeNoteModalBtn) elements.closeNoteModalBtn.onclick = closeNote;
+  }
+
+  if (elements.noteModal) {
+    elements.noteModal.onclick = (e) => {
+      if (e.target === elements.noteModal) elements.noteModal.classList.remove('open');
+    };
+  }
+
   if (elements.clearAllNotesBtn) {
-    elements.clearAllNotesBtn.onclick = () => {
+    elements.clearAllNotesBtn.onclick = (e) => {
+      e.preventDefault();
       if (confirm('Clear all saved notes and highlights?')) {
         state.notes = [];
         state.highlights = [];
@@ -2589,93 +2649,11 @@ function setupEventListeners() {
     };
   }
 
-  // Dictionary Modal
-  if (elements.dictionaryModalClose) {
-    elements.dictionaryModalClose.onclick = () => {
-      if (elements.dictionaryModal) elements.dictionaryModal.classList.remove('open');
-    };
-  }
-  if (elements.dictionaryModalBackdrop) {
-    elements.dictionaryModalBackdrop.onclick = () => {
-      if (elements.dictionaryModal) elements.dictionaryModal.classList.remove('open');
-    };
-  }
-  if (elements.quickDefineHintBtn) {
-    elements.quickDefineHintBtn.onclick = () => {
-      lookupDictionary('unlettered');
-    };
-  }
-
-  // Shortcuts Modal
-  if (elements.shortcutsTriggerBtn) {
-    elements.shortcutsTriggerBtn.onclick = () => {
-      if (elements.shortcutsModal) elements.shortcutsModal.classList.add('open');
-    };
-  }
-  if (elements.shortcutsModalClose) {
-    elements.shortcutsModalClose.onclick = () => {
-      if (elements.shortcutsModal) elements.shortcutsModal.classList.remove('open');
-    };
-  }
-  if (elements.shortcutsModalBackdrop) {
-    elements.shortcutsModalBackdrop.onclick = () => {
-      if (elements.shortcutsModal) elements.shortcutsModal.classList.remove('open');
-    };
-  }
-
-  // Vocab Quiz Studio Modal
-  if (elements.vocabQuizTriggerBtn) elements.vocabQuizTriggerBtn.onclick = openVocabQuizModal;
-  if (elements.launchVocabStudioBtn) elements.launchVocabStudioBtn.onclick = openVocabQuizModal;
-  if (elements.vocabStudioClose) {
-    elements.vocabStudioClose.onclick = () => {
-      if (elements.vocabStudioModal) elements.vocabStudioModal.classList.remove('open');
-    };
-  }
-  if (elements.vocabStudioBackdrop) {
-    elements.vocabStudioBackdrop.onclick = () => {
-      if (elements.vocabStudioModal) elements.vocabStudioModal.classList.remove('open');
-    };
-  }
-
-  if (elements.vUnitSelect) {
-    elements.vUnitSelect.onchange = () => {
-      updateLessonDropdown();
-      filterVocabQuestions();
-    };
-  }
-  if (elements.vLessonSelect) {
-    elements.vLessonSelect.onchange = filterVocabQuestions;
-  }
-
-  document.querySelectorAll('.quiz-filter-pill').forEach(pill => {
-    pill.onclick = () => {
-      document.querySelectorAll('.quiz-filter-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      state.quizLevel = pill.dataset.level || 'all';
-      filterVocabQuestions();
-    };
-  });
-
-  if (elements.vNextWordBtn) {
-    elements.vNextWordBtn.onclick = () => {
-      state.quizIndex++;
-      renderVocabQuestion();
-    };
-  }
-
-  if (elements.vRestartQuizBtn) {
-    elements.vRestartQuizBtn.onclick = () => {
-      state.quizIndex = 0;
-      state.quizScore = 0;
-      filterVocabQuestions();
-    };
-  }
-
-  // TOC Filter Input
-  if (elements.tocSearchInput) {
-    elements.tocSearchInput.oninput = (e) => {
+  // 14. TOC Filter Input
+  if (elements.tocFilterInput) {
+    elements.tocFilterInput.oninput = (e) => {
       const q = e.target.value.toLowerCase().trim();
-      const unitItems = elements.tocTree.querySelectorAll('.toc-unit-item');
+      const unitItems = document.querySelectorAll('.toc-unit-item');
       unitItems.forEach(u => {
         const title = u.textContent.toLowerCase();
         if (!q || title.includes(q)) {
@@ -2685,6 +2663,30 @@ function setupEventListeners() {
           u.style.display = 'none';
         }
       });
+    };
+  }
+
+  // 15. Zoom Controls (for Scan view mode)
+  let zoomLevel = 1.0;
+  if (elements.zoomInBtn && elements.originalPageImg) {
+    elements.zoomInBtn.onclick = () => {
+      zoomLevel = Math.min(zoomLevel + 0.2, 2.5);
+      elements.originalPageImg.style.transform = `scale(${zoomLevel})`;
+      if (elements.zoomResetBtn) elements.zoomResetBtn.textContent = `${Math.round(zoomLevel * 100)}%`;
+    };
+  }
+  if (elements.zoomOutBtn && elements.originalPageImg) {
+    elements.zoomOutBtn.onclick = () => {
+      zoomLevel = Math.max(zoomLevel - 0.2, 0.6);
+      elements.originalPageImg.style.transform = `scale(${zoomLevel})`;
+      if (elements.zoomResetBtn) elements.zoomResetBtn.textContent = `${Math.round(zoomLevel * 100)}%`;
+    };
+  }
+  if (elements.zoomResetBtn && elements.originalPageImg) {
+    elements.zoomResetBtn.onclick = () => {
+      zoomLevel = 1.0;
+      elements.originalPageImg.style.transform = 'scale(1.0)';
+      elements.zoomResetBtn.textContent = '100%';
     };
   }
 }
