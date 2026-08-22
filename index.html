@@ -377,105 +377,234 @@
       </div>
 
       <div class="vocab-modal-body">
-        <!-- Unit & Lesson Category Selectors -->
-        <div class="vocab-category-bar">
-          <div class="vocab-filter-field">
-            <label for="vUnitSelect"><i class="fa-solid fa-folder-tree"></i> Unit:</label>
-            <select id="vUnitSelect" class="vocab-select-dropdown">
-              <option value="all">📚 All Units (12 Units)</option>
-              <option value="1">Unit 1: Education and Life</option>
-              <option value="2">Unit 2: Art and Craft</option>
-              <option value="3">Unit 3: Myths and Literature</option>
-              <option value="4">Unit 4: History</option>
-              <option value="5">Unit 5: Human Rights</option>
-              <option value="6">Unit 6: Dreams</option>
-              <option value="7">Unit 7: Youthful Achievers</option>
-              <option value="8">Unit 8: Relationships</option>
-              <option value="9">Unit 9: Adolescence</option>
-              <option value="10">Unit 10: Lifestyle</option>
-              <option value="11">Unit 11: Peace and Conflict</option>
-              <option value="12">Unit 12: Environment and Nature</option>
-            </select>
+        <!-- SCREEN 1: EXAM SETUP & UNIT/LESSON SELECTION -->
+        <div class="quiz-screen" id="quizSetupScreen">
+          <div class="quiz-setup-hero">
+            <div class="setup-hero-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+            <h3>Textbook Vocabulary Exam & MCQ Studio</h3>
+            <p>Select your Unit and Lesson to start targeted vocabulary practice directly from NCTB English For Today.</p>
           </div>
 
-          <div class="vocab-filter-field">
-            <label for="vLessonSelect"><i class="fa-regular fa-file-lines"></i> Lesson:</label>
-            <select id="vLessonSelect" class="vocab-select-dropdown">
-              <option value="all">📖 All Lessons</option>
-            </select>
-          </div>
-
-          <div class="vocab-filter-field">
-            <label><i class="fa-solid fa-signal"></i> Level:</label>
-            <div class="vocab-level-filter">
-              <button class="lvl-btn active" data-level="all">All</button>
-              <button class="lvl-btn" data-level="Basic">Basic</button>
-              <button class="lvl-btn" data-level="Intermediate">Intermediate</button>
-              <button class="lvl-btn" data-level="Advanced">Advanced</button>
-            </div>
-          </div>
-        </div>
-        <!-- Progress Bar & Stats -->
-        <div class="vocab-quiz-stats">
-          <div class="quiz-progress-bar-container">
-            <div class="quiz-progress-bar-fill" id="quizProgressBarFill" style="width: 5%;"></div>
-          </div>
-          <div class="quiz-stats-labels">
-            <span id="quizCounterText">Word 1 of 25</span>
-            <span id="quizScoreText"><i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Score: 0</span>
-          </div>
-        </div>
-
-        <!-- Question View Container -->
-        <div class="vocab-card-canvas" id="vocabCardCanvas">
-          <!-- Active Target Word Box -->
-          <div class="target-word-banner">
-            <div class="target-word-title-row">
-              <span class="word-level-badge" id="vWordLevelBadge">Intermediate</span>
-              <h2 class="target-word-title" id="vWordTitle">unlettered</h2>
-              <button class="target-word-audio-btn" id="vWordAudioBtn" title="Pronounce Word">
-                <i class="fa-solid fa-volume-high"></i>
-              </button>
-            </div>
-            <p class="target-word-prompt">Select the closest meaning for this textbook word:</p>
-          </div>
-
-          <!-- 4 Multiple Choice Options Grid -->
-          <div class="vocab-options-container" id="vocabOptionsContainer">
-            <!-- Dynamically populated via app.js -->
-          </div>
-
-          <!-- Feedback & Context Card (Revealed upon selecting an option) -->
-          <div class="vocab-feedback-card" id="vocabFeedbackCard" style="display: none;">
-            <div class="feedback-status-banner" id="vFeedbackBanner">
-              <i class="fa-solid fa-circle-check"></i> <strong>Correct!</strong>
-            </div>
-            <div class="feedback-details">
-              <div class="feedback-def-row">
-                <span class="feedback-pos" id="vFeedbackPos">adjective</span>
-                <span class="feedback-def" id="vFeedbackDef">illiterate, not educated or knowledgeable</span>
+          <div class="quiz-setup-form">
+            <div class="setup-form-row">
+              <div class="setup-field">
+                <label for="vUnitSelect"><i class="fa-solid fa-folder-tree"></i> ১. ইউনিট নির্বাচন করুন (Select Unit):</label>
+                <select id="vUnitSelect" class="setup-dropdown">
+                  <option value="all">📚 All Units (12 Units Combined)</option>
+                  <option value="1">Unit 1: Education and Life</option>
+                  <option value="2">Unit 2: Art and Craft</option>
+                  <option value="3">Unit 3: Myths and Literature</option>
+                  <option value="4">Unit 4: History</option>
+                  <option value="5">Unit 5: Human Rights</option>
+                  <option value="6">Unit 6: Dreams</option>
+                  <option value="7">Unit 7: Youthful Achievers</option>
+                  <option value="8">Unit 8: Relationships</option>
+                  <option value="9">Unit 9: Adolescence</option>
+                  <option value="10">Unit 10: Lifestyle</option>
+                  <option value="11">Unit 11: Peace and Conflict</option>
+                  <option value="12">Unit 12: Environment and Nature</option>
+                </select>
               </div>
-              <blockquote class="feedback-example" id="vFeedbackExample">
-                "Once upon a time there lived a bird. It was unlettered."
-              </blockquote>
-              
-              <!-- THE CRITICAL TEXTBOOK REFERENCE REDIRECTION BUTTON -->
-              <div class="textbook-reference-box">
-                <div class="ref-meta">
-                  <i class="fa-solid fa-book-bookmark"></i>
-                  <span id="vRefLessonText">Unit 1: Education and Life • Lesson 1: The Parrot's Tale</span>
+
+              <div class="setup-field">
+                <label for="vLessonSelect"><i class="fa-regular fa-file-lines"></i> ২. লেসন নির্বাচন করুন (Select Lesson):</label>
+                <select id="vLessonSelect" class="setup-dropdown">
+                  <option value="all">📖 All Lessons in this Unit (পুরো ইউনিট)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="setup-form-row">
+              <div class="setup-field">
+                <label for="vQuestionCountSelect"><i class="fa-solid fa-list-ol"></i> ৩. প্রশ্নের সংখ্যা (Question Count):</label>
+                <select id="vQuestionCountSelect" class="setup-dropdown">
+                  <option value="all" selected>All Available Questions (সকল প্রশ্ন)</option>
+                  <option value="5">5 Questions (Quick Drill)</option>
+                  <option value="10">10 Questions (Standard Test)</option>
+                  <option value="15">15 Questions (Extended Exam)</option>
+                  <option value="20">20 Questions (Full Mock Test)</option>
+                </select>
+              </div>
+
+              <div class="setup-field">
+                <label><i class="fa-solid fa-signal"></i> ৪. কাঠিন্যের মাত্রা (Difficulty Level):</label>
+                <div class="vocab-level-filter">
+                  <button class="lvl-btn active" data-level="all">All</button>
+                  <button class="lvl-btn" data-level="Basic">Basic</button>
+                  <button class="lvl-btn" data-level="Intermediate">Intermediate</button>
+                  <button class="lvl-btn" data-level="Advanced">Advanced</button>
                 </div>
-                <button class="jump-to-book-btn" id="vJumpToBookBtn" title="Redirect directly to this word in the textbook and highlight it">
-                  <i class="fa-solid fa-arrow-up-right-from-square"></i> 📖 View in Textbook (Book Page <span id="vRefPageNum">1</span>) &rarr;
+              </div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="setup-summary-card">
+              <div class="summary-item">
+                <span class="summary-label"><i class="fa-solid fa-book-open"></i> নির্বাচিত পরিধি:</span>
+                <strong class="summary-val" id="setupScopeText">Unit 1: Education and Life (All Lessons)</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label"><i class="fa-solid fa-circle-question"></i> মোট প্রশ্ন সংখ্যা:</span>
+                <strong class="summary-val" id="setupAvailableCount">25 MCQs</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label"><i class="fa-solid fa-stopwatch"></i> টাইমার ও একুরেসি:</span>
+                <strong class="summary-val text-success">প্রতি প্রশ্নের সময় ও গড় সময় ট্র্যাকিং সক্রিয়</strong>
+              </div>
+            </div>
+
+            <button class="start-exam-giant-btn" id="startExamBtn">
+              <i class="fa-solid fa-play"></i> পরীক্ষা শুরু করুন (Start Quiz) &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- SCREEN 2: ACTIVE LIVE EXAM & QUESTIONS -->
+        <div class="quiz-screen" id="quizActiveScreen" style="display: none;">
+          <!-- Top Exam Header with Live Timers -->
+          <div class="exam-live-header">
+            <div class="exam-header-left">
+              <button class="quit-exam-btn" id="quitExamBtn" title="Quit Exam & Back to Setup">
+                <i class="fa-solid fa-arrow-left"></i> Change Scope
+              </button>
+              <span class="exam-scope-badge" id="examScopeBadge">Unit 1 • Lesson 1</span>
+            </div>
+
+            <div class="exam-timers-group">
+              <div class="timer-pill question-timer" title="Time spent on this question">
+                <i class="fa-regular fa-clock"></i> <span id="questionTimerText">00:00s</span>
+              </div>
+              <div class="timer-pill total-timer" title="Total exam duration">
+                <i class="fa-solid fa-stopwatch"></i> <span id="totalTimerText">00:00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress Bar & Stats -->
+          <div class="vocab-quiz-stats">
+            <div class="quiz-progress-bar-container">
+              <div class="quiz-progress-bar-fill" id="quizProgressBarFill" style="width: 5%;"></div>
+            </div>
+            <div class="quiz-stats-labels">
+              <span id="quizCounterText">Question 1 of 10</span>
+              <span id="quizScoreText"><i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Score: 0</span>
+            </div>
+          </div>
+
+          <!-- Question View Container -->
+          <div class="vocab-card-canvas" id="vocabCardCanvas">
+            <!-- Active Target Word Box -->
+            <div class="target-word-banner">
+              <div class="target-word-title-row">
+                <span class="word-level-badge" id="vWordLevelBadge">Intermediate</span>
+                <h2 class="target-word-title" id="vWordTitle">unlettered</h2>
+                <button class="target-word-audio-btn" id="vWordAudioBtn" title="Pronounce Word">
+                  <i class="fa-solid fa-volume-high"></i>
+                </button>
+              </div>
+              <p class="target-word-prompt">Select the closest meaning for this textbook word:</p>
+            </div>
+
+            <!-- 4 Multiple Choice Options Grid -->
+            <div class="vocab-options-container" id="vocabOptionsContainer">
+              <!-- Dynamically populated via app.js -->
+            </div>
+
+            <!-- Feedback & Context Card (Revealed upon selecting an option) -->
+            <div class="vocab-feedback-card" id="vocabFeedbackCard" style="display: none;">
+              <div class="feedback-status-banner" id="vFeedbackBanner">
+                <i class="fa-solid fa-circle-check"></i> <strong>Correct!</strong>
+              </div>
+              <div class="feedback-details">
+                <!-- Details injected via app.js -->
+              </div>
+
+              <div class="feedback-footer">
+                <button class="next-word-btn" id="vNextWordBtn">
+                  Next Question <i class="fa-solid fa-arrow-right"></i>
                 </button>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div class="feedback-footer">
-              <button class="next-word-btn" id="vNextWordBtn">
-                Next Word <i class="fa-solid fa-arrow-right"></i>
-              </button>
+        <!-- SCREEN 3: COMPREHENSIVE ANALYTICS & RESULTS REPORT -->
+        <div class="quiz-screen" id="quizAnalyticsScreen" style="display: none;">
+          <div class="analytics-hero">
+            <div class="analytics-trophy-ring">
+              <i class="fa-solid fa-award"></i>
             </div>
+            <h3>পরীক্ষার পূর্ণাঙ্গ মূল্যায়ন ও বিশ্লেষণ</h3>
+            <p id="analyticsSubtitle">NCTB English For Today Exam Performance Report</p>
+          </div>
+
+          <!-- 4 Core Metric Cards -->
+          <div class="analytics-metrics-grid">
+            <div class="analytics-stat-card accuracy-card">
+              <div class="stat-icon"><i class="fa-solid fa-bullseye"></i></div>
+              <div class="stat-meta">
+                <span class="stat-label">Accuracy (একুরেসি)</span>
+                <strong class="stat-value text-accent" id="analyticsAccuracy">80%</strong>
+                <span class="stat-sub" id="analyticsScoreRatio">8 / 10 Correct</span>
+              </div>
+            </div>
+
+            <div class="analytics-stat-card avg-time-card">
+              <div class="stat-icon"><i class="fa-solid fa-bolt"></i></div>
+              <div class="stat-meta">
+                <span class="stat-label">Average Time (গড় সময়)</span>
+                <strong class="stat-value text-warning" id="analyticsAvgTime">8.4s</strong>
+                <span class="stat-sub">প্রতি প্রশ্নের গড় সময়</span>
+              </div>
+            </div>
+
+            <div class="analytics-stat-card total-time-card">
+              <div class="stat-icon"><i class="fa-solid fa-stopwatch"></i></div>
+              <div class="stat-meta">
+                <span class="stat-label">Total Time (মোট সময়)</span>
+                <strong class="stat-value text-info" id="analyticsTotalTime">1m 24s</strong>
+                <span class="stat-sub">সম্পূর্ণ পরীক্ষায় ব্যয়িত সময়</span>
+              </div>
+            </div>
+
+            <div class="analytics-stat-card score-card">
+              <div class="stat-icon"><i class="fa-solid fa-trophy"></i></div>
+              <div class="stat-meta">
+                <span class="stat-label">Total Score (মোট স্কোর)</span>
+                <strong class="stat-value text-gold" id="analyticsTotalScore">80 pts</strong>
+                <span class="stat-sub">10 pts / Correct MCQ</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Performance Message Alert -->
+          <div class="analytics-performance-banner" id="analyticsPerfBanner">
+            🌟 Brilliant Work! You have exceptional recall of this unit's vocabulary!
+          </div>
+
+          <!-- Mistakes Breakdown Section -->
+          <div class="analytics-mistakes-section" id="analyticsMistakesSection">
+            <div class="mistakes-header">
+              <h4><i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> ভুল হওয়া প্রশ্নের বিস্তারিত পর্যালোচনা (<span id="mistakesCountText">0</span> টি প্রশ্ন)</h4>
+              <p>নিচে ভুল প্রশ্নগুলোর সঠিক উত্তর, আপনার উত্তর এবং পাঠ্যবইয়ের পৃষ্ঠা নির্দেশ দেওয়া হলো:</p>
+            </div>
+
+            <div class="mistakes-list" id="analyticsMistakesList">
+              <!-- Dynamically populated via app.js -->
+            </div>
+          </div>
+
+          <!-- Results Actions -->
+          <div class="analytics-actions-row">
+            <button class="analytics-btn primary" id="analyticsRetakeBtn">
+              <i class="fa-solid fa-rotate-right"></i> পুনরায় পরীক্ষা দিন (Retake Exam)
+            </button>
+            <button class="analytics-btn warning" id="analyticsPracticeMistakesBtn" style="display: none;">
+              <i class="fa-solid fa-fire"></i> শুধুমাত্র ভুলগুলো প্র্যাকটিস করুন
+            </button>
+            <button class="analytics-btn secondary" id="analyticsChangeScopeBtn">
+              <i class="fa-solid fa-sliders"></i> নতুন ইউনিট/লেসন নির্বাচন করুন
+            </button>
           </div>
         </div>
       </div>

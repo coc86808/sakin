@@ -370,9 +370,26 @@ function initApp() {
   goToPage(savedPage, false);
 
   if (quizParam === '1' || quizParam === 'true') {
-    if (unitParam) state.quizUnit = unitParam;
-    if (lessonParam) state.quizLesson = lessonParam;
-    setTimeout(openVocabQuizModal, 100);
+    const uVal = unitParam ? unitParam : null;
+    const lVal = lessonParam ? lessonParam : null;
+    setTimeout(() => {
+      openVocabQuizModal(uVal, lVal);
+      if (urlParams.get('auto_start') === '1') {
+        startExam();
+      } else if (urlParams.get('analytics_preview') === '1') {
+        startExam();
+        // Simulate answering questions with 3 correct and 1 wrong
+        state.examHistory = [
+          { questionIndex: 0, wordObj: state.examQuestions[0] || state.vocabList[0], selectedText: (state.examQuestions[0] || state.vocabList[0]).correctDefinition, isCorrect: true, timeSpentSeconds: 6.2 },
+          { questionIndex: 1, wordObj: state.examQuestions[1] || state.vocabList[1], selectedText: 'having colorful feathers and loud wings', isCorrect: false, timeSpentSeconds: 14.5 },
+          { questionIndex: 2, wordObj: state.examQuestions[2] || state.vocabList[2], selectedText: (state.examQuestions[2] || state.vocabList[2]).correctDefinition, isCorrect: true, timeSpentSeconds: 8.1 },
+          { questionIndex: 3, wordObj: state.examQuestions[3] || state.vocabList[3], selectedText: (state.examQuestions[3] || state.vocabList[3]).correctDefinition, isCorrect: true, timeSpentSeconds: 5.4 }
+        ];
+        state.examScore = 3;
+        state.examStartTime = Date.now() - 35000;
+        showExamAnalytics();
+      }
+    }, 100);
   } else if (dictParam) {
     setTimeout(() => lookupDictionary(dictParam), 150);
   }
@@ -801,124 +818,327 @@ function jumpToWordInBook(targetPageNum, targetWord) {
   setTimeout(() => focusWordInRenderedPage(targetWord), 450);
 }
 
-// 7. MAGOOSH-STYLE VOCABULARY BUILDER & QUIZ ENGINE (ALL 12 UNITS & 47 LESSONS)
+// 7. MAGOOSH-STYLE VOCABULARY EXAM & ANALYTICS ENGINE (ALL 12 UNITS & 47 LESSONS)
+let examTimerInterval = null;
+
 function initVocabQuiz() {
   state.vocabList = window.VOCAB_DATA || [];
   state.activeVocabList = [...state.vocabList];
-  updateLessonDropdown();
+  state.examHistory = [];
+  state.examQuestions = [];
+  state.examScore = 0;
+  state.examIndex = 0;
+  state.examStartTime = 0;
+  state.questionStartTime = 0;
+
+  setupExamDropdowns();
   renderSidebarVocabList();
 }
 
-function openVocabQuizModal() {
-  if (!elements.vocabStudioModal) return;
-  elements.vocabStudioModal.classList.add('open');
-  if (elements.vUnitSelect) elements.vUnitSelect.value = state.quizUnit;
-  updateLessonDropdown();
-  if (elements.vLessonSelect) elements.vLessonSelect.value = state.quizLesson;
-  filterVocabQuestions();
+function setupExamDropdowns() {
+  const uSelect = document.getElementById('vUnitSelect');
+  const lSelect = document.getElementById('vLessonSelect');
+  const countSelect = document.getElementById('vQuestionCountSelect');
+  const startBtn = document.getElementById('startExamBtn');
+  const quitBtn = document.getElementById('quitExamBtn');
+  const retakeBtn = document.getElementById('analyticsRetakeBtn');
+  const practiceMistakesBtn = document.getElementById('analyticsPracticeMistakesBtn');
+  const changeScopeBtn = document.getElementById('analyticsChangeScopeBtn');
+
+  if (uSelect) {
+    uSelect.onchange = () => {
+      updateExamLessonDropdown();
+      updateExamSetupSummary();
+    };
+  }
+
+  if (lSelect) {
+    lSelect.onchange = () => {
+      updateExamSetupSummary();
+    };
+  }
+
+  if (countSelect) {
+    countSelect.onchange = () => {
+      updateExamSetupSummary();
+    };
+  }
+
+  // Level filter buttons in setup
+  const lvlBtns = document.querySelectorAll('.vocab-level-filter .lvl-btn');
+  lvlBtns.forEach(btn => {
+    btn.onclick = () => {
+      lvlBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.quizLevel = btn.dataset.level || 'all';
+      updateExamSetupSummary();
+    };
+  });
+
+  if (startBtn) {
+    startBtn.onclick = () => startExam();
+  }
+
+  if (quitBtn) {
+    quitBtn.onclick = () => {
+      if (confirm('Are you sure you want to exit the current exam?')) {
+        clearInterval(examTimerInterval);
+        showExamSetupScreen();
+      }
+    };
+  }
+
+  if (retakeBtn) {
+    retakeBtn.onclick = () => startExam();
+  }
+
+  if (practiceMistakesBtn) {
+    practiceMistakesBtn.onclick = () => startMistakesOnlyPractice();
+  }
+
+  if (changeScopeBtn) {
+    changeScopeBtn.onclick = () => showExamSetupScreen();
+  }
+
+  updateExamLessonDropdown();
+  updateExamSetupSummary();
 }
 
-function updateLessonDropdown() {
-  if (!elements.vLessonSelect) return;
-  const currentUnit = elements.vUnitSelect ? elements.vUnitSelect.value : 'all';
-  
+function updateExamLessonDropdown() {
+  const uSelect = document.getElementById('vUnitSelect');
+  const lSelect = document.getElementById('vLessonSelect');
+  if (!lSelect) return;
+
+  const currentUnit = uSelect ? uSelect.value : 'all';
   let filteredWords = state.vocabList;
   if (currentUnit !== 'all') {
     filteredWords = state.vocabList.filter(w => String(w.unitNumber) === String(currentUnit));
   }
 
   const lessonsSet = new Set(filteredWords.map(w => w.lesson).filter(Boolean));
-  
-  let optionsHtml = '<option value="all">📖 All Lessons</option>';
+  let optionsHtml = '<option value="all">📖 All Lessons in this Unit (পুরো ইউনিট)</option>';
   lessonsSet.forEach(les => {
     optionsHtml += `<option value="${les}">${les}</option>`;
   });
 
-  elements.vLessonSelect.innerHTML = optionsHtml;
+  lSelect.innerHTML = optionsHtml;
 }
 
-function filterVocabQuestions() {
-  const selectedUnit = elements.vUnitSelect ? elements.vUnitSelect.value : 'all';
-  const selectedLesson = elements.vLessonSelect ? elements.vLessonSelect.value : 'all';
-  const selectedLevel = state.quizLevel;
+function updateExamSetupSummary() {
+  const uSelect = document.getElementById('vUnitSelect');
+  const lSelect = document.getElementById('vLessonSelect');
+  const scopeText = document.getElementById('setupScopeText');
+  const countText = document.getElementById('setupAvailableCount');
 
-  state.quizUnit = selectedUnit;
-  state.quizLesson = selectedLesson;
+  const selectedUnit = uSelect ? uSelect.value : 'all';
+  const selectedLesson = lSelect ? lSelect.value : 'all';
+  const selectedLevel = state.quizLevel || 'all';
 
-  state.activeVocabList = state.vocabList.filter(w => {
+  const matchingWords = state.vocabList.filter(w => {
     const matchUnit = (selectedUnit === 'all') || (String(w.unitNumber) === String(selectedUnit));
     const matchLesson = (selectedLesson === 'all') || (w.lesson === selectedLesson);
     const matchLevel = (selectedLevel === 'all') || (w.level.toLowerCase() === selectedLevel.toLowerCase());
     return matchUnit && matchLesson && matchLevel;
   });
 
-  state.quizIndex = 0;
-  state.quizScore = 0;
-
-  if (state.activeVocabList.length === 0) {
-    if (elements.vQuestionCard) elements.vQuestionCard.style.display = 'none';
-    if (elements.vResultsScreen) {
-      elements.vResultsScreen.style.display = 'block';
-      if (elements.vPerformanceMsg) {
-        elements.vPerformanceMsg.innerHTML = '<div style="color: #f59e0b; padding: 2rem;">No vocabulary words found for this selection.<br>Try selecting "All Lessons" or a different Unit.</div>';
-      }
-      if (elements.vFinalScore) elements.vFinalScore.textContent = '0';
-    }
-    return;
+  if (scopeText) {
+    let unitLabel = selectedUnit === 'all' ? 'All Units (12 Units)' : `Unit ${selectedUnit}`;
+    let lessonLabel = selectedLesson === 'all' ? 'All Lessons' : selectedLesson;
+    scopeText.textContent = `${unitLabel} • ${lessonLabel}`;
   }
 
-  if (elements.vQuestionCard) elements.vQuestionCard.style.display = 'block';
-  if (elements.vResultsScreen) elements.vResultsScreen.style.display = 'none';
-  renderVocabQuestion();
+  if (countText) {
+    countText.textContent = `${matchingWords.length} MCQs Available`;
+  }
+}
+
+function showExamSetupScreen() {
+  const setupScreen = document.getElementById('quizSetupScreen');
+  const activeScreen = document.getElementById('quizActiveScreen');
+  const analyticsScreen = document.getElementById('quizAnalyticsScreen');
+
+  if (setupScreen) setupScreen.style.display = 'block';
+  if (activeScreen) activeScreen.style.display = 'none';
+  if (analyticsScreen) analyticsScreen.style.display = 'none';
+
+  updateExamLessonDropdown();
+  updateExamSetupSummary();
+}
+
+function openVocabQuizModal(unitNum = null, lessonTitle = null) {
+  const modal = document.getElementById('vocabStudioModal');
+  if (!modal) return;
+  modal.classList.add('open');
+
+  showExamSetupScreen();
+
+  const uSelect = document.getElementById('vUnitSelect');
+  const lSelect = document.getElementById('vLessonSelect');
+
+  if (unitNum !== null && uSelect) {
+    uSelect.value = String(unitNum);
+    updateExamLessonDropdown();
+  }
+
+  if (lessonTitle !== null && lSelect) {
+    lSelect.value = lessonTitle;
+  }
+
+  updateExamSetupSummary();
 }
 
 function startQuizForUnit(unitNum) {
-  state.quizUnit = String(unitNum);
-  state.quizLesson = 'all';
-  openVocabQuizModal();
+  openVocabQuizModal(unitNum, 'all');
 }
 
 function startQuizForLesson(lessonTitle) {
-  state.quizLesson = lessonTitle;
-  // find unit for this lesson
   const found = state.vocabList.find(w => w.lesson === lessonTitle);
-  if (found && found.unitNumber) {
-    state.quizUnit = String(found.unitNumber);
-  }
-  openVocabQuizModal();
+  const uNum = found ? found.unitNumber : 1;
+  openVocabQuizModal(uNum, lessonTitle);
 }
 
-function renderVocabQuestion() {
-  if (state.activeVocabList.length === 0) return;
-  if (state.quizIndex >= state.activeVocabList.length) {
-    showVocabResults();
+function startExam() {
+  const uSelect = document.getElementById('vUnitSelect');
+  const lSelect = document.getElementById('vLessonSelect');
+  const countSelect = document.getElementById('vQuestionCountSelect');
+
+  const selectedUnit = uSelect ? uSelect.value : 'all';
+  const selectedLesson = lSelect ? lSelect.value : 'all';
+  const selectedLevel = state.quizLevel || 'all';
+
+  let filtered = state.vocabList.filter(w => {
+    const matchUnit = (selectedUnit === 'all') || (String(w.unitNumber) === String(selectedUnit));
+    const matchLesson = (selectedLesson === 'all') || (w.lesson === selectedLesson);
+    const matchLevel = (selectedLevel === 'all') || (w.level.toLowerCase() === selectedLevel.toLowerCase());
+    return matchUnit && matchLesson && matchLevel;
+  });
+
+  if (filtered.length === 0) {
+    alert('No vocabulary questions found for this selection. Please select "All Lessons" or a different Unit.');
     return;
   }
 
-  const wordObj = state.activeVocabList[state.quizIndex];
-  
-  if (elements.vCurrentWordIndex) elements.vCurrentWordIndex.textContent = state.quizIndex + 1;
-  if (elements.vTotalWordsCount) elements.vTotalWordsCount.textContent = state.activeVocabList.length;
-  if (elements.vCurrentScore) elements.vCurrentScore.textContent = state.quizScore;
-  
-  const progressPct = ((state.quizIndex) / state.activeVocabList.length) * 100;
-  if (elements.vQuizProgressBar) elements.vQuizProgressBar.style.width = `${progressPct}%`;
+  // Shuffle questions
+  filtered = [...filtered].sort(() => Math.random() - 0.5);
 
-  if (elements.vWordBadge) {
-    elements.vWordBadge.textContent = `${(wordObj.level || 'Intermediate').toUpperCase()} • ${(wordObj.lesson || 'Lesson').toUpperCase()}`;
+  const limitVal = countSelect ? countSelect.value : 'all';
+  if (limitVal !== 'all') {
+    const limit = parseInt(limitVal, 10);
+    if (!isNaN(limit) && limit > 0) {
+      filtered = filtered.slice(0, limit);
+    }
   }
-  if (elements.vTargetWord) elements.vTargetWord.textContent = wordObj.word;
 
-  if (elements.vSpeakWordBtn) {
-    elements.vSpeakWordBtn.onclick = (e) => {
+  state.examQuestions = filtered;
+  state.examIndex = 0;
+  state.examScore = 0;
+  state.examHistory = [];
+  state.examStartTime = Date.now();
+
+  const setupScreen = document.getElementById('quizSetupScreen');
+  const activeScreen = document.getElementById('quizActiveScreen');
+  const analyticsScreen = document.getElementById('quizAnalyticsScreen');
+
+  if (setupScreen) setupScreen.style.display = 'none';
+  if (activeScreen) activeScreen.style.display = 'block';
+  if (analyticsScreen) analyticsScreen.style.display = 'none';
+
+  const scopeBadge = document.getElementById('examScopeBadge');
+  if (scopeBadge) {
+    let uLabel = selectedUnit === 'all' ? 'All Units' : `Unit ${selectedUnit}`;
+    let lLabel = selectedLesson === 'all' ? 'All Lessons' : selectedLesson;
+    scopeBadge.textContent = `${uLabel} • ${lLabel}`;
+  }
+
+  renderExamQuestion();
+}
+
+function startMistakesOnlyPractice() {
+  const mistakes = state.examHistory.filter(h => !h.isCorrect).map(h => h.wordObj);
+  if (mistakes.length === 0) return;
+
+  state.examQuestions = [...mistakes].sort(() => Math.random() - 0.5);
+  state.examIndex = 0;
+  state.examScore = 0;
+  state.examHistory = [];
+  state.examStartTime = Date.now();
+
+  const setupScreen = document.getElementById('quizSetupScreen');
+  const activeScreen = document.getElementById('quizActiveScreen');
+  const analyticsScreen = document.getElementById('quizAnalyticsScreen');
+
+  if (setupScreen) setupScreen.style.display = 'none';
+  if (activeScreen) activeScreen.style.display = 'block';
+  if (analyticsScreen) analyticsScreen.style.display = 'none';
+
+  const scopeBadge = document.getElementById('examScopeBadge');
+  if (scopeBadge) {
+    scopeBadge.textContent = `🎯 Mistakes Drill (${mistakes.length} Words)`;
+  }
+
+  renderExamQuestion();
+}
+
+function renderExamQuestion() {
+  if (state.examIndex >= state.examQuestions.length) {
+    showExamAnalytics();
+    return;
+  }
+
+  clearInterval(examTimerInterval);
+  state.questionStartTime = Date.now();
+
+  const qTimerText = document.getElementById('questionTimerText');
+  const totalTimerText = document.getElementById('totalTimerText');
+
+  examTimerInterval = setInterval(() => {
+    const qSec = Math.floor((Date.now() - state.questionStartTime) / 1000);
+    const totalSec = Math.floor((Date.now() - state.examStartTime) / 1000);
+
+    if (qTimerText) {
+      qTimerText.textContent = `${String(qSec).padStart(2, '0')}s`;
+    }
+    if (totalTimerText) {
+      const mins = Math.floor(totalSec / 60);
+      const secs = totalSec % 60;
+      totalTimerText.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+  }, 300);
+
+  const wordObj = state.examQuestions[state.examIndex];
+
+  const counterText = document.getElementById('quizCounterText');
+  const scoreText = document.getElementById('quizScoreText');
+  const progressFill = document.getElementById('quizProgressBarFill');
+
+  if (counterText) counterText.textContent = `Question ${state.examIndex + 1} of ${state.examQuestions.length}`;
+  if (scoreText) scoreText.innerHTML = `<i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Score: ${state.examScore * 10}`;
+  if (progressFill) {
+    const pct = ((state.examIndex) / state.examQuestions.length) * 100;
+    progressFill.style.width = `${pct}%`;
+  }
+
+  const wordLevelBadge = document.getElementById('vWordLevelBadge');
+  const wordTitle = document.getElementById('vWordTitle');
+  const audioBtn = document.getElementById('vWordAudioBtn');
+
+  if (wordLevelBadge) {
+    wordLevelBadge.textContent = `${(wordObj.level || 'Intermediate').toUpperCase()} • ${(wordObj.lesson || 'Lesson').toUpperCase()}`;
+  }
+  if (wordTitle) wordTitle.textContent = wordObj.word;
+
+  if (audioBtn) {
+    audioBtn.onclick = (e) => {
       e.stopPropagation();
       speakText(wordObj.word);
     };
   }
 
-  if (elements.vocabFeedbackCard) elements.vocabFeedbackCard.style.display = 'none';
+  const feedbackCard = document.getElementById('vocabFeedbackCard');
+  if (feedbackCard) feedbackCard.style.display = 'none';
 
-  if (elements.vocabOptionsContainer) {
+  const optionsContainer = document.getElementById('vocabOptionsContainer');
+  if (optionsContainer) {
     const letters = ['A', 'B', 'C', 'D'];
     let html = '';
     wordObj.options.forEach((opt, idx) => {
@@ -929,16 +1149,22 @@ function renderVocabQuestion() {
         </div>
       `;
     });
-    elements.vocabOptionsContainer.innerHTML = html;
+    optionsContainer.innerHTML = html;
 
-    elements.vocabOptionsContainer.querySelectorAll('.vocab-option-pill').forEach(pill => {
-      pill.onclick = () => handleVocabOptionSelection(pill, wordObj);
+    optionsContainer.querySelectorAll('.vocab-option-pill').forEach(pill => {
+      pill.onclick = () => handleExamOptionSelection(pill, wordObj);
     });
   }
 }
 
-function handleVocabOptionSelection(pill, wordObj) {
-  const allPills = elements.vocabOptionsContainer.querySelectorAll('.vocab-option-pill');
+function handleExamOptionSelection(pill, wordObj) {
+  clearInterval(examTimerInterval);
+  const timeSpentSec = Math.max(1, Math.round(((Date.now() - state.questionStartTime) / 1000) * 10) / 10);
+
+  const optionsContainer = document.getElementById('vocabOptionsContainer');
+  if (!optionsContainer) return;
+
+  const allPills = optionsContainer.querySelectorAll('.vocab-option-pill');
   allPills.forEach(p => p.classList.add('disabled'));
 
   const selectedText = pill.querySelector('.vocab-opt-text').textContent.trim();
@@ -946,19 +1172,11 @@ function handleVocabOptionSelection(pill, wordObj) {
 
   if (isCorrect) {
     pill.classList.add('correct');
-    state.quizScore += 10;
+    state.examScore += 1;
     AudioEngine.playChime();
-    if (elements.vFeedbackBanner) {
-      elements.vFeedbackBanner.className = 'feedback-status-banner correct';
-      elements.vFeedbackBanner.innerHTML = '<i class="fa-solid fa-circle-check"></i> Correct! Excellent memory!';
-    }
   } else {
     pill.classList.add('wrong');
     AudioEngine.playClick();
-    if (elements.vFeedbackBanner) {
-      elements.vFeedbackBanner.className = 'feedback-status-banner incorrect';
-      elements.vFeedbackBanner.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Not quite — see meaning and use cases below!';
-    }
     allPills.forEach(p => {
       if (p.querySelector('.vocab-opt-text').textContent.trim() === wordObj.correctDefinition) {
         p.classList.add('correct');
@@ -966,8 +1184,31 @@ function handleVocabOptionSelection(pill, wordObj) {
     });
   }
 
+  // Record into detailed exam history
+  state.examHistory.push({
+    questionIndex: state.examIndex,
+    wordObj: wordObj,
+    selectedText: selectedText,
+    correctText: wordObj.correctDefinition,
+    isCorrect: isCorrect,
+    timeSpentSeconds: timeSpentSec
+  });
+
+  const feedbackCard = document.getElementById('vocabFeedbackCard');
+  const feedbackBanner = document.getElementById('vFeedbackBanner');
+  const nextBtn = document.getElementById('vNextWordBtn');
+
+  if (feedbackBanner) {
+    if (isCorrect) {
+      feedbackBanner.className = 'feedback-status-banner correct';
+      feedbackBanner.innerHTML = `<i class="fa-solid fa-circle-check"></i> <strong>সঠিক উত্তর! (Correct! - ${timeSpentSec}s)</strong>`;
+    } else {
+      feedbackBanner.className = 'feedback-status-banner incorrect';
+      feedbackBanner.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <strong>ভুল উত্তর (Incorrect - ${timeSpentSec}s)</strong> — নিচে সঠিক অর্থ ও বিশ্লেষণ দেখুন:`;
+    }
+  }
+
   let feedbackHtml = '';
-  
   if (wordObj.bangla) {
     feedbackHtml += `
       <div class="feedback-bangla-banner">
@@ -987,17 +1228,8 @@ function handleVocabOptionSelection(pill, wordObj) {
   if (wordObj.textbookUseCase || wordObj.example) {
     feedbackHtml += `
       <div class="dict-usecase-item textbook" style="margin-bottom: 8px;">
-        <div class="usecase-tag"><i class="fa-solid fa-book-bookmark" style="color: #f59e0b;"></i> পাঠ্যবইয়ের প্রেক্ষাপট (Textbook Context)</div>
+        <div class="usecase-tag"><i class="fa-solid fa-book-bookmark" style="color: #f59e0b;"></i> পাঠ্যবইয়ের বাক্য (Textbook Context)</div>
         <div class="usecase-sentence">"${wordObj.textbookUseCase || wordObj.example}"</div>
-      </div>
-    `;
-  }
-
-  if (wordObj.useCase) {
-    feedbackHtml += `
-      <div class="dict-usecase-item" style="margin-bottom: 12px;">
-        <div class="usecase-tag"><i class="fa-solid fa-circle-check" style="color: #22c55e;"></i> বাস্তব প্রয়োগ ও পরীক্ষা ব্যবহারের বাক্য (Practical Use Case)</div>
-        <div class="usecase-sentence">"${wordObj.useCase}"</div>
       </div>
     `;
   }
@@ -1009,7 +1241,7 @@ function handleVocabOptionSelection(pill, wordObj) {
 
   feedbackHtml += `
     <div class="dict-grammar-card" style="margin: 10px 0;">
-      <div class="grammar-card-header"><i class="fa-solid fa-shapes"></i> পদ পরিবর্তন ও ব্যাকরণগত রূপভেদ (Grammatical Forms)</div>
+      <div class="grammar-card-header"><i class="fa-solid fa-shapes"></i> পদ পরিবর্তন ও ব্যাকরণগত রূপভেদ (Grammar Forms)</div>
       <div class="pos-family-grid">
         <div class="pos-family-item"><span class="pos-family-tag">Noun</span><span class="pos-family-val">${posFamily.noun || '—'}</span></div>
         <div class="pos-family-item"><span class="pos-family-tag">Verb</span><span class="pos-family-val">${posFamily.verb || '—'}</span></div>
@@ -1017,17 +1249,17 @@ function handleVocabOptionSelection(pill, wordObj) {
         <div class="pos-family-item"><span class="pos-family-tag">Adverb</span><span class="pos-family-val">${posFamily.adverb || '—'}</span></div>
       </div>
       <div class="verb-forms-container">
-        <div class="verb-forms-title"><i class="fa-solid fa-clock"></i> ক্রিয়ার কাল ও রূপ (Verb Tenses: V1, V2, V3, V4 & Future)</div>
+        <div class="verb-forms-title"><i class="fa-solid fa-clock"></i> ক্রিয়ার কাল (Verb Tenses)</div>
         <div class="verb-forms-row">
-          <div class="verb-form-cell"><span class="verb-form-lbl">Present (V1)</span><span class="verb-form-text">${verbForms.v1_present}</span></div>
-          <div class="verb-form-cell"><span class="verb-form-lbl">Past (V2)</span><span class="verb-form-text">${verbForms.v2_past}</span></div>
-          <div class="verb-form-cell"><span class="verb-form-lbl">Past Part. (V3)</span><span class="verb-form-text">${verbForms.v3_past_participle}</span></div>
-          <div class="verb-form-cell"><span class="verb-form-lbl">Cont. (V4)</span><span class="verb-form-text">${verbForms.v4_continuous}</span></div>
+          <div class="verb-form-cell"><span class="verb-form-lbl">V1</span><span class="verb-form-text">${verbForms.v1_present}</span></div>
+          <div class="verb-form-cell"><span class="verb-form-lbl">V2</span><span class="verb-form-text">${verbForms.v2_past}</span></div>
+          <div class="verb-form-cell"><span class="verb-form-lbl">V3</span><span class="verb-form-text">${verbForms.v3_past_participle}</span></div>
+          <div class="verb-form-cell"><span class="verb-form-lbl">V4</span><span class="verb-form-text">${verbForms.v4_continuous}</span></div>
           <div class="verb-form-cell"><span class="verb-form-lbl">Future</span><span class="verb-form-text">${verbForms.future}</span></div>
         </div>
       </div>
       <div class="degrees-container">
-        <div class="degrees-title"><i class="fa-solid fa-chart-simple"></i> বিশেষণের তারতম্য (Degrees of Comparison)</div>
+        <div class="degrees-title"><i class="fa-solid fa-chart-simple"></i> ডিগ্রিজ (Degrees of Comparison)</div>
         <div class="degrees-row">
           <div class="degree-cell"><span class="degree-lbl">Positive</span><span class="degree-text">${degrees.positive}</span></div>
           <div class="degree-cell"><span class="degree-lbl">Comparative</span><span class="degree-text">${degrees.comparative}</span></div>
@@ -1036,7 +1268,6 @@ function handleVocabOptionSelection(pill, wordObj) {
       </div>
     </div>
 
-    <!-- Synonyms & Antonyms in Quiz Feedback -->
     <div class="dict-syn-ant-container" style="margin: 10px 0;">
       <div class="synonyms-card">
         <div class="syn-ant-title syn"><i class="fa-solid fa-arrow-right-arrow-left"></i> সমার্থক শব্দ (Synonyms)</div>
@@ -1051,9 +1282,7 @@ function handleVocabOptionSelection(pill, wordObj) {
         </div>
       </div>
     </div>
-  `;
 
-  feedbackHtml += `
     <div class="textbook-reference-box">
       <div class="ref-meta">
         <i class="fa-solid fa-book-bookmark"></i>
@@ -1065,34 +1294,145 @@ function handleVocabOptionSelection(pill, wordObj) {
     </div>
   `;
 
-  const detailsContainer = elements.vocabFeedbackCard.querySelector('.feedback-details');
+  const detailsContainer = feedbackCard ? feedbackCard.querySelector('.feedback-details') : null;
   if (detailsContainer) {
     detailsContainer.innerHTML = feedbackHtml;
   }
 
-  if (elements.vocabFeedbackCard) {
-    elements.vocabFeedbackCard.style.display = 'block';
+  if (feedbackCard) feedbackCard.style.display = 'block';
+
+  if (nextBtn) {
+    if (state.examIndex + 1 >= state.examQuestions.length) {
+      nextBtn.innerHTML = `🏆 Finish Exam & View Analytics (ফলাফল দেখুন) <i class="fa-solid fa-award"></i>`;
+    } else {
+      nextBtn.innerHTML = `Next Question <i class="fa-solid fa-arrow-right"></i>`;
+    }
+
+    nextBtn.onclick = () => {
+      state.examIndex += 1;
+      renderExamQuestion();
+    };
   }
 }
 
-function showVocabResults() {
-  if (elements.vQuestionCard) elements.vQuestionCard.style.display = 'none';
-  if (elements.vocabFeedbackCard) elements.vocabFeedbackCard.style.display = 'none';
-  if (elements.vResultsScreen) elements.vResultsScreen.style.display = 'block';
+function showExamAnalytics() {
+  clearInterval(examTimerInterval);
 
-  const total = state.activeVocabList.length;
-  const maxScore = total * 10;
-  const pct = maxScore > 0 ? (state.quizScore / maxScore) * 100 : 0;
+  const setupScreen = document.getElementById('quizSetupScreen');
+  const activeScreen = document.getElementById('quizActiveScreen');
+  const analyticsScreen = document.getElementById('quizAnalyticsScreen');
 
-  if (elements.vFinalScore) elements.vFinalScore.textContent = `${state.quizScore} / ${maxScore} pts`;
+  if (setupScreen) setupScreen.style.display = 'none';
+  if (activeScreen) activeScreen.style.display = 'none';
+  if (analyticsScreen) analyticsScreen.style.display = 'block';
 
-  let msg = '';
-  if (pct >= 90) msg = '🌟 Brilliant Mastery! You have exceptional command of NCTB textbook vocabulary!';
-  else if (pct >= 70) msg = '👏 Great Job! Keep practicing lessons to achieve 100% mastery!';
-  else if (pct >= 50) msg = '💪 Good Effort! Review the textbook context and retake the quiz to sharpen your recall.';
-  else msg = '📖 Keep Learning! Read the lessons closely and practice active recall to build strong vocabulary.';
+  const totalQuestions = state.examQuestions.length;
+  const correctCount = state.examScore;
+  const accuracyPct = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
 
-  if (elements.vPerformanceMsg) elements.vPerformanceMsg.textContent = msg;
+  // Calculate times
+  const totalSeconds = Math.max(1, Math.round((Date.now() - state.examStartTime) / 1000));
+  const totalMins = Math.floor(totalSeconds / 60);
+  const remSecs = totalSeconds % 60;
+  const totalTimeFormatted = totalMins > 0 ? `${totalMins}m ${remSecs}s` : `${remSecs}s`;
+
+  let sumTimeSpent = 0;
+  state.examHistory.forEach(h => { sumTimeSpent += h.timeSpentSeconds; });
+  const avgTimePerQuestion = totalQuestions > 0 ? (sumTimeSpent / totalQuestions).toFixed(1) : '0';
+
+  // Inject into Analytics Cards
+  const accVal = document.getElementById('analyticsAccuracy');
+  const scoreRatio = document.getElementById('analyticsScoreRatio');
+  const avgTimeVal = document.getElementById('analyticsAvgTime');
+  const totalTimeVal = document.getElementById('analyticsTotalTime');
+  const totalScoreVal = document.getElementById('analyticsTotalScore');
+  const perfBanner = document.getElementById('analyticsPerfBanner');
+  const mistakesCountText = document.getElementById('mistakesCountText');
+  const mistakesList = document.getElementById('analyticsMistakesList');
+  const practiceMistakesBtn = document.getElementById('analyticsPracticeMistakesBtn');
+
+  if (accVal) accVal.textContent = `${accuracyPct}%`;
+  if (scoreRatio) scoreRatio.textContent = `${correctCount} / ${totalQuestions} Correct`;
+  if (avgTimeVal) avgTimeVal.textContent = `${avgTimePerQuestion}s`;
+  if (totalTimeVal) totalTimeVal.textContent = totalTimeFormatted;
+  if (totalScoreVal) totalScoreVal.textContent = `${correctCount * 10} pts`;
+
+  // Performance message
+  if (perfBanner) {
+    if (accuracyPct >= 90) {
+      perfBanner.className = 'analytics-performance-banner outstanding';
+      perfBanner.innerHTML = `🌟 অসাধারণ পারফরম্যান্স! আপনার একুরেসি <strong>${accuracyPct}%</strong> এবং গড় সময় মাত্র <strong>${avgTimePerQuestion}s</strong>!`;
+    } else if (accuracyPct >= 70) {
+      perfBanner.className = 'analytics-performance-banner great';
+      perfBanner.innerHTML = `👏 চমৎকার প্রস্তুতি! আপনার একুরেসি <strong>${accuracyPct}%</strong>। ভুল প্রশ্নগুলো নিচে পর্যালোচনা করে নিন।`;
+    } else if (accuracyPct >= 50) {
+      perfBanner.className = 'analytics-performance-banner good';
+      perfBanner.innerHTML = `💪 ভালো প্রচেষ্টা! একুরেসি <strong>${accuracyPct}%</strong>। পাঠ্যবইয়ের পৃষ্ঠা ও শব্দার্থ রিভিশন দিয়ে আবার চেষ্টা করুন।`;
+    } else {
+      perfBanner.className = 'analytics-performance-banner review';
+      perfBanner.innerHTML = `📖 পাঠ্যবই ও ভোকাবুলারি আরও মনোযোগ দিয়ে পড়তে হবে। নিচের ভুল উত্তরগুলোর সঠিক বিশ্লেষণ দেখে নিন।`;
+    }
+  }
+
+  // Mistakes analysis list
+  const mistakes = state.examHistory.filter(h => !h.isCorrect);
+  if (mistakesCountText) mistakesCountText.textContent = String(mistakes.length);
+
+  if (practiceMistakesBtn) {
+    practiceMistakesBtn.style.display = mistakes.length > 0 ? 'inline-flex' : 'none';
+  }
+
+  if (mistakesList) {
+    if (mistakes.length === 0) {
+      mistakesList.innerHTML = `
+        <div class="mistakes-empty-banner">
+          <i class="fa-solid fa-circle-check" style="font-size: 2.2rem; color: #22c55e; margin-bottom: 0.5rem; display: block;"></i>
+          <strong>অভিনন্দন! আপনার কোনো প্রশ্ন ভুল হয়নি (100% Accuracy)!</strong><br>
+          আপনি এই ইউনিটের সকল শব্দের সঠিক অর্থ নির্ভুলভাবে নির্ণয় করতে পেরেছেন।
+        </div>
+      `;
+    } else {
+      let mHtml = '';
+      mistakes.forEach((m, idx) => {
+        mHtml += `
+          <div class="mistake-card-item">
+            <div class="m-card-header">
+              <div class="m-word-title">
+                <span class="m-idx">#${idx + 1}</span>
+                <strong>${m.wordObj.word}</strong>
+                <span class="m-time-pill"><i class="fa-regular fa-clock"></i> ${m.timeSpentSeconds}s ব্যয় হয়েছে</span>
+              </div>
+              <span class="m-lesson-tag">${m.wordObj.unit} • ${m.wordObj.lesson}</span>
+            </div>
+
+            <div class="m-answers-compare">
+              <div class="m-ans-box wrong">
+                <span class="m-ans-lbl"><i class="fa-solid fa-xmark"></i> আপনার উত্তর (Your Choice):</span>
+                <div class="m-ans-txt">${m.selectedText}</div>
+              </div>
+              <div class="m-ans-box correct">
+                <span class="m-ans-lbl"><i class="fa-solid fa-check"></i> সঠিক অর্থ (Correct Meaning):</span>
+                <div class="m-ans-txt">${m.correctText || (m.wordObj && m.wordObj.correctDefinition) || '—'}</div>
+              </div>
+            </div>
+
+            ${m.wordObj.bangla ? `
+              <div class="m-bangla-meaning">
+                <i class="fa-solid fa-language"></i> বাংলা অর্থ: <strong>${m.wordObj.bangla}</strong>
+              </div>
+            ` : ''}
+
+            <div class="m-card-footer">
+              <button class="jump-to-book-btn" onclick="jumpToWordInBook(${m.wordObj.page}, '${m.wordObj.word}')" title="Redirect directly to this word in the textbook and highlight it">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> 📖 View in Textbook (Book Page ${m.wordObj.printedPage}) &rarr;
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      mistakesList.innerHTML = mHtml;
+    }
+  }
 }
 
 function renderSidebarVocabList() {
@@ -1117,7 +1457,7 @@ function renderSidebarVocabList() {
           <span class="vup-badge">${uObj.words.length} Words</span>
         </div>
         <div class="vup-lessons">${Array.from(new Set(uObj.words.map(w => w.lesson))).join(' • ')}</div>
-        <div class="vup-action"><i class="fa-solid fa-play"></i> Practice Unit ${uNum} MCQs &rarr;</div>
+        <div class="vup-action"><i class="fa-solid fa-play"></i> Start Unit ${uNum} Exam &rarr;</div>
       </div>
     `;
   });
