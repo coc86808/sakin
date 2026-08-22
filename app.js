@@ -2927,12 +2927,20 @@ function setupEventListeners() {
   if (elements.sidebarToggleBtn) {
     elements.sidebarToggleBtn.onclick = (e) => {
       e.preventDefault();
-      if (elements.sidebar) {
-        elements.sidebar.classList.toggle('open');
-        elements.sidebar.classList.toggle('collapsed');
-      }
-      if (elements.sidebarBackdrop) {
-        elements.sidebarBackdrop.classList.toggle('active');
+      if (window.innerWidth <= 900) {
+        if (elements.sidebar) {
+          elements.sidebar.classList.toggle('open');
+        }
+        if (elements.sidebarBackdrop) {
+          elements.sidebarBackdrop.classList.toggle('active');
+        }
+      } else {
+        if (elements.sidebar) {
+          elements.sidebar.classList.toggle('collapsed');
+        }
+        if (elements.sidebarBackdrop) {
+          elements.sidebarBackdrop.classList.remove('active');
+        }
       }
     };
   }

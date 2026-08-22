@@ -3906,22 +3906,28 @@ mark.target-word-glow-focus::after {
   color: #ef4444;
 }
 
-/* Sidebar Backdrop Overlay */
+/* Sidebar Backdrop Overlay - Mobile Only */
 .sidebar-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  z-index: 899;
-  opacity: 0;
-  transition: opacity 0.25s ease;
+  display: none !important;
 }
 
-.sidebar-backdrop.active {
-  display: block;
-  opacity: 1;
+@media (max-width: 900px) {
+  .sidebar-backdrop {
+    display: none !important;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 899;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .sidebar-backdrop.active {
+    display: block !important;
+    opacity: 1;
+  }
 }
 
 @media (max-width: 900px) {
