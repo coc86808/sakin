@@ -386,7 +386,7 @@ function initElements() {
 
 
 // 4. CORE PAGE NAVIGATION & RENDERING ENGINE
-function goToPage(pageNum, triggerFlip = true) {
+function goToPage(pageNum, triggerFlip = true, updateHistory = true) {
   if (!state.bookData || !state.bookData.pages) return;
   
   const total = state.totalPages || 295;
@@ -410,6 +410,38 @@ function goToPage(pageNum, triggerFlip = true) {
   updateReadingMetrics(pageObj.text);
   renderTextContent(pageObj, triggerFlip);
   
+  // 1 & 2. Update Browser URL Query Parameter & document.title
+  let activeUnit = "English For Today";
+  let activeLesson = `Page ${validPage}`;
+  if (pageObj.unit_title) activeUnit = pageObj.unit_title;
+  if (pageObj.lesson_title) activeLesson = pageObj.lesson_title;
+  if (state.bookData && state.bookData.toc) {
+    for (const unit of state.bookData.toc) {
+      if (unit.start_page <= validPage) {
+        activeUnit = unit.title;
+        if (unit.lessons) {
+          for (const lesson of unit.lessons) {
+            if (lesson.start_page <= validPage) {
+              activeLesson = lesson.title;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  const lessonName = activeLesson ? activeLesson : activeUnit;
+  document.title = `Page ${validPage}: ${lessonName} - English For Today`;
+
+  if (updateHistory && typeof window !== 'undefined' && window.history) {
+    const currentUrl = new URL(window.location.href);
+    const existingParam = currentUrl.searchParams.get('page');
+    if (existingParam !== String(validPage)) {
+      currentUrl.searchParams.set('page', validPage);
+      window.history.pushState({ page: validPage }, '', currentUrl.search);
+    }
+  }
+  
   if (elements.originalPageImg) {
     elements.originalPageImg.src = pageObj.image || `assets/pages/page_${validPage}.png`;
   }
@@ -427,6 +459,22 @@ function goToPage(pageNum, triggerFlip = true) {
     if (elements.sidebarBackdrop) elements.sidebarBackdrop.classList.remove('active');
   }
 }
+
+// 3. Browser Back/Forward navigation popstate listener
+window.addEventListener('popstate', (e) => {
+  if (e.state && typeof e.state.page === 'number') {
+    goToPage(e.state.page, true, false);
+  } else {
+    const urlParams = new URLSearchParams(window.location.search);
+    const p = parseInt(urlParams.get('page'), 10);
+    if (!isNaN(p) && p >= 1 && p <= state.totalPages) {
+      goToPage(p, true, false);
+    } else {
+      const savedPage = parseInt(safeStorage.get('e4t_last_page', '7'), 10);
+      goToPage(savedPage, true, false);
+    }
+  }
+});
 
 function initApp() {
   initElements();
@@ -453,7 +501,8 @@ function initApp() {
   const unitParam = urlParams.get('unit');
   const lessonParam = urlParams.get('lesson');
   
-  const savedPage = pageParam || parseInt(safeStorage.get('e4t_last_page', '7'), 10);
+  const isValidPage = !isNaN(pageParam) && pageParam >= 1 && pageParam <= state.totalPages;
+  const initialPage = isValidPage ? pageParam : parseInt(safeStorage.get('e4t_last_page', '7'), 10);
   
   if (modeParam && ['text', 'split', 'image'].includes(modeParam)) {
     setViewMode(modeParam);
@@ -463,7 +512,14 @@ function initApp() {
     state.focusedTargetWord = focusWordParam;
   }
   
-  goToPage(savedPage, false);
+  // Set initial replaceState for browser history
+  if (typeof window !== 'undefined' && window.history) {
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('page', initialPage);
+    window.history.replaceState({ page: initialPage }, '', currentUrl.search);
+  }
+
+  goToPage(initialPage, false, false);
 
   if (quizParam === '1' || quizParam === 'true') {
     const uVal = unitParam ? unitParam : null;
