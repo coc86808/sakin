@@ -59,6 +59,20 @@
           <div class="brand-icon">
             <i class="fa-solid fa-book-open"></i>
           </div>
+          
+      <!-- Main App View Switcher (Vocab MCQ Hub vs. Textbook Reader) -->
+      <div class="app-view-switcher" id="appViewSwitcher">
+        <button class="view-switch-btn active" id="switchVocabHubBtn" data-view="vocab-hub" title="HSC Vocabulary MCQ Learning Hub (Main Mode)">
+          <i class="fa-solid fa-graduation-cap" style="color: #f59e0b;"></i>
+          <span>Vocab MCQ Hub</span>
+          <span class="view-active-pill">MAIN</span>
+        </button>
+        <button class="view-switch-btn" id="switchReaderBtn" data-view="reader" title="NCTB 295-Page Digital E-Book Reader (Companion Mode)">
+          <i class="fa-solid fa-book-open" style="color: #818cf8;"></i>
+          <span>Textbook Reader</span>
+        </button>
+      </div>
+
           <div class="brand-text">
             <div class="brand-title">English For Today</div>
             <div class="brand-badge">Classes XI-XII & Alim • Interactive E-Book</div>
@@ -134,7 +148,272 @@
 
     <!-- Main Container -->
     <div class="main-container">
-      <!-- Collapsible Sidebar (TOC, Bookmarks, Notes & Highlights) -->
+
+    <!-- ==========================================================================
+         PRIMARY HERO VIEW: HSC VOCABULARY MASTERY & MCQ LEARNING HUB
+         ========================================================================== -->
+    <main class="vocab-hub-view active" id="vocabHubView">
+      <div class="vocab-hub-container">
+        
+        <!-- Top Hero Stats & Welcome Banner -->
+        <header class="hub-hero-banner">
+          <div class="hub-hero-info">
+            <div class="hub-hero-badge"><i class="fa-solid fa-bolt" style="color: #facc15;"></i> HSC English For Today • Classes XI-XII & Alim</div>
+            <h1 class="hub-hero-title">HSC Vocabulary MCQ Mastery Hub</h1>
+            <p class="hub-hero-subtitle">মাস্টার করুন পাঠ্যবইয়ের সকল গুরুত্বপূর্ণ শব্দার্থ, সমার্থক-বিপরীতার্থক ও বোর্ড পরীক্ষার স্পেশাল প্রশ্নসমূহ।</p>
+          </div>
+          
+          <!-- Gamified Learning Metrics -->
+          <div class="hub-stats-grid">
+            <div class="hub-stat-card" title="Your Daily Study Streak">
+              <div class="stat-icon streak-icon"><i class="fa-solid fa-fire"></i></div>
+              <div class="stat-content">
+                <span class="stat-value" id="hubStreakVal">1 Day</span>
+                <span class="stat-label">Daily Streak</span>
+              </div>
+            </div>
+
+            <div class="hub-stat-card" title="Total Words Mastered">
+              <div class="stat-icon master-icon"><i class="fa-solid fa-circle-check"></i></div>
+              <div class="stat-content">
+                <span class="stat-value" id="hubMasteredVal">0 / 255</span>
+                <span class="stat-label">Words Mastered</span>
+              </div>
+            </div>
+
+            <div class="hub-stat-card" title="Overall Accuracy Rate">
+              <div class="stat-icon accuracy-icon"><i class="fa-solid fa-bullseye"></i></div>
+              <div class="stat-content">
+                <span class="stat-value" id="hubAccuracyVal">100%</span>
+                <span class="stat-label">Accuracy</span>
+              </div>
+            </div>
+
+            <div class="hub-stat-card" title="Total Experience Points">
+              <div class="stat-icon xp-icon"><i class="fa-solid fa-trophy"></i></div>
+              <div class="stat-content">
+                <span class="stat-value" id="hubXpVal">0 XP</span>
+                <span class="stat-label">Student XP</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Mode Selection Tiles -->
+        <section class="hub-modes-section">
+          <div class="section-heading">
+            <h3><i class="fa-solid fa-gamepad"></i> ১. প্র্যাকটিস মোড নির্বাচন করুন (Choose Practice Mode)</h3>
+            <span class="heading-badge">৪টি স্পেশাল মোড</span>
+          </div>
+
+          <div class="hub-mode-tiles-grid" id="hubModeTiles">
+            <div class="hub-mode-card active" data-mode="bangla">
+              <div class="mode-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                <i class="fa-solid fa-language"></i>
+              </div>
+              <div class="mode-card-info">
+                <h4>বাংলা অর্থ নির্ণয় (Bangla Meaning)</h4>
+                <p>ইংরেজি শব্দের সঠিক বাংলা প্রতিশব্দ ও অর্থ চিহ্নিত করুন।</p>
+              </div>
+              <div class="mode-active-indicator"><i class="fa-solid fa-check"></i></div>
+            </div>
+
+            <div class="hub-mode-card" data-mode="synonym_antonym">
+              <div class="mode-card-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+                <i class="fa-solid fa-arrows-rotate"></i>
+              </div>
+              <div class="mode-card-info">
+                <h4>Synonyms & Antonyms (সমার্থক ও বিপরীত)</h4>
+                <p>বোর্ড পরীক্ষায় আসা সমার্থক ও বিপরীতার্থক শব্দ নির্ভুলভাবে অনুশীলন করুন।</p>
+              </div>
+              <div class="mode-active-indicator"><i class="fa-solid fa-check"></i></div>
+            </div>
+
+            <div class="hub-mode-card" data-mode="definition">
+              <div class="mode-card-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                <i class="fa-solid fa-book-bookmark"></i>
+              </div>
+              <div class="mode-card-info">
+                <h4>English Definition (ইংরেজি সংজ্ঞা)</h4>
+                <p>NCTB টেক্সটবইয়ের কনটেক্সচুয়াল ইংরেজি অর্থ ও ডেফিনিশন ম্যাচিং।</p>
+              </div>
+              <div class="mode-active-indicator"><i class="fa-solid fa-check"></i></div>
+            </div>
+
+            <div class="hub-mode-card" data-mode="hsc_board">
+              <div class="mode-card-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
+                <i class="fa-solid fa-award"></i>
+              </div>
+              <div class="mode-card-info">
+                <h4>HSC Board Exam Master (বিগত প্রশ্ন)</h4>
+                <p>ঢাকা, রাজশাহী, চট্টগ্রামসহ সকল শিক্ষা বোর্ডের বিগত বছরের ভোকাবুলারি প্রশ্ন।</p>
+              </div>
+              <div class="mode-active-indicator"><i class="fa-solid fa-check"></i></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Filters & Arena Controls -->
+        <section class="hub-controls-bar">
+          <div class="hub-filter-group">
+            <label for="hubUnitSelect"><i class="fa-solid fa-folder-tree"></i> ইউনিট:</label>
+            <select id="hubUnitSelect" class="hub-select">
+              <option value="all">📚 All Units (12 Units Combined • 255 Words)</option>
+              <option value="1">Unit 1: Education and Life</option>
+              <option value="2">Unit 2: Art and Music</option>
+              <option value="3">Unit 3: Dreams and Aspirations</option>
+              <option value="4">Unit 4: History and Heritage</option>
+              <option value="5">Unit 5: Human Rights and Freedom</option>
+              <option value="6">Unit 6: Adolescence and Youth</option>
+              <option value="7">Unit 7: Youthful Achievers</option>
+              <option value="8">Unit 8: Relationships and Family</option>
+              <option value="9">Unit 9: Lifestyle and Health</option>
+              <option value="10">Unit 10: Diaspora and Migration</option>
+              <option value="11">Unit 11: Peace and Conflict</option>
+              <option value="12">Unit 12: Environment and Nature</option>
+            </select>
+          </div>
+
+          <div class="hub-filter-group">
+            <label for="hubLessonSelect"><i class="fa-regular fa-file-lines"></i> লেসন:</label>
+            <select id="hubLessonSelect" class="hub-select">
+              <option value="all">📖 All Lessons (পুরো ইউনিট)</option>
+            </select>
+          </div>
+
+          <div class="hub-filter-group">
+            <label for="hubCountSelect"><i class="fa-solid fa-list-ol"></i> প্রশ্নের সংখ্যা:</label>
+            <select id="hubCountSelect" class="hub-select">
+              <option value="10" selected>10 Questions (Standard Drill)</option>
+              <option value="20">20 Questions (Mock Test)</option>
+              <option value="all">All Available Questions</option>
+            </select>
+          </div>
+
+          <button class="hub-start-btn" id="hubStartQuizBtn">
+            <i class="fa-solid fa-play"></i> শুরু করুন (Start Practice)
+          </button>
+        </section>
+
+        <!-- LIVE INTERACTIVE MCQ ARENA CARD -->
+        <section class="hub-mcq-stage" id="hubMcqStage">
+          <div class="hub-mcq-card" id="hubMcqCard">
+            <!-- Question Top Header -->
+            <div class="mcq-card-header">
+              <div class="mcq-unit-pill" id="mcqUnitPill"><i class="fa-solid fa-book"></i> Unit 1: Education and Life</div>
+              <div class="mcq-progress-badge">
+                Question <span id="mcqCurrentNum">1</span> of <span id="mcqTotalNum">10</span>
+              </div>
+              <div class="mcq-timer-badge" id="mcqTimerBadge"><i class="fa-regular fa-clock"></i> <span id="mcqTimerText">00:15</span></div>
+            </div>
+
+            <!-- Question Prompt Body -->
+            <div class="mcq-prompt-box">
+              <div class="mcq-target-word-row">
+                <span class="mcq-target-word" id="mcqTargetWord">Aesthetic</span>
+                <span class="mcq-pos-tag" id="mcqPosTag">adjective</span>
+                <button class="mcq-audio-btn" id="mcqAudioBtn" title="Pronounce Word (Audio TTS)">
+                  <i class="fa-solid fa-volume-high"></i> Listen
+                </button>
+              </div>
+              <h3 class="mcq-question-text" id="mcqQuestionText">শব্দটির সঠিক বাংলা অর্থ কোনটি? (What is the correct Bangla meaning?)</h3>
+            </div>
+
+            <!-- 4 Interactive Option Buttons -->
+            <div class="mcq-options-grid" id="mcqOptionsGrid">
+              <!-- Dynamically populated options A, B, C, D -->
+            </div>
+
+            <!-- Instant Detailed Feedback & Explanation Card (Reveals upon answering) -->
+            <div class="mcq-feedback-card hidden" id="mcqFeedbackCard">
+              <div class="feedback-header" id="feedbackHeader">
+                <div class="feedback-status-badge" id="feedbackStatusBadge">
+                  <i class="fa-solid fa-circle-check"></i> <strong>অভিনন্দন! সঠিক উত্তর!</strong> (+15 XP)
+                </div>
+              </div>
+
+              <div class="feedback-details-grid">
+                <div class="feedback-box bangla-box">
+                  <div class="box-title"><i class="fa-solid fa-language"></i> বাংলা অর্থ (Bangla Meaning):</div>
+                  <div class="box-content" id="fbBanglaMeaning">নান্দনিক, সৌন্দর্যবিষয়ক</div>
+                </div>
+
+                <div class="feedback-box eng-box">
+                  <div class="box-title"><i class="fa-solid fa-book-open"></i> ইংরেজি সংজ্ঞা (English Definition):</div>
+                  <div class="box-content" id="fbEnglishMeaning">concerned with beauty, artistic taste, or appreciation of art</div>
+                </div>
+
+                <div class="feedback-box syn-box">
+                  <div class="box-title"><i class="fa-solid fa-plus-circle" style="color: #10b981;"></i> Synonyms (সমার্থক শব্দ):</div>
+                  <div class="box-content pills-container" id="fbSynonyms">
+                    <span class="pill syn-pill">artistic</span>
+                    <span class="pill syn-pill">beautiful</span>
+                    <span class="pill syn-pill">sublime</span>
+                    <span class="pill syn-pill">exquisite</span>
+                  </div>
+                </div>
+
+                <div class="feedback-box ant-box">
+                  <div class="box-title"><i class="fa-solid fa-minus-circle" style="color: #ef4444;"></i> Antonyms (বিপরীত শব্দ):</div>
+                  <div class="box-content pills-container" id="fbAntonyms">
+                    <span class="pill ant-pill">unaesthetic</span>
+                    <span class="pill ant-pill">hideous</span>
+                    <span class="pill ant-pill">ugly</span>
+                  </div>
+                </div>
+
+                <div class="feedback-box context-box full-width">
+                  <div class="box-title"><i class="fa-solid fa-quote-left"></i> পাঠ্যবইয়ের ব্যবহারের বাক্য (Textbook Context):</div>
+                  <div class="box-content italic" id="fbUseCase">"In Unit 2 Lesson 1, beauty is analyzed through its aesthetic pleasure."</div>
+                </div>
+              </div>
+
+              <!-- Action Buttons Row -->
+              <div class="feedback-actions-row">
+                <button class="jump-to-book-btn" id="fbJumpToBookBtn">
+                  <i class="fa-solid fa-book-open-reader"></i> 📖 Read in Textbook (<span id="fbBookPageNum">Page 20</span>)
+                </button>
+                <button class="next-mcq-btn" id="fbNextMcqBtn">
+                  পরবর্তী প্রশ্ন (Next Question) <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUMMARY & RESULTS VIEW (Shown when drill is complete) -->
+          <div class="hub-results-card hidden" id="hubResultsCard">
+            <div class="results-trophy-icon"><i class="fa-solid fa-trophy"></i></div>
+            <h2>অভিনন্দন! প্র্যাকটিস সেশন সম্পন্ন হয়েছে!</h2>
+            <p class="results-subtitle">You have completed this vocabulary mastery challenge!</p>
+
+            <div class="results-score-row">
+              <div class="result-circle">
+                <span class="score-big" id="resScoreBig">8/10</span>
+                <span class="score-pct" id="resPctBig">80% Accuracy</span>
+              </div>
+              <div class="result-details">
+                <div><i class="fa-solid fa-bolt" style="color: #facc15;"></i> মোট অর্জিত এক্সপি: <strong id="resXpEarned">+120 XP</strong></div>
+                <div><i class="fa-solid fa-clock" style="color: #60a5fa;"></i> সময় লেগেছে: <strong id="resTimeTaken">1m 45s</strong></div>
+                <div><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> নতুন মাস্টার্ড শব্দ: <strong id="resNewMastered">8 Words</strong></div>
+              </div>
+            </div>
+
+            <div class="results-action-buttons">
+              <button class="hub-start-btn" id="resRestartBtn"><i class="fa-solid fa-rotate-right"></i> পুনরায় অনুশীলন করুন (Practice Again)</button>
+              <button class="jump-to-book-btn" id="resOpenReaderBtn"><i class="fa-solid fa-book-open"></i> পাঠ্যবই পড়ুন (Read Textbook)</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- COMPANION SECONDARY VIEW: 295-PAGE TEXTBOOK READER -->
+    
+      <!-- COMPANION SECONDARY VIEW: 295-PAGE TEXTBOOK READER -->
+      <div class="reader-companion-view hidden" id="readerCompanionView">
+        <!-- Collapsible Sidebar (TOC, Bookmarks, Notes & Highlights) -->
+      
       <aside class="sidebar collapsed" id="sidebar">
         <div class="sidebar-mobile-header">
           <div class="sidebar-mobile-title">
@@ -204,7 +483,8 @@
       </aside>
       <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-      <!-- Reader Viewport Canvas -->
+      <div class="reader-content-wrapper">
+        <!-- Reader Viewport Canvas -->
       <section class="reader-viewport" id="readerViewport">
         <!-- Page Context Header Banner -->
         <div class="page-context-banner">
@@ -263,9 +543,8 @@
           </div>
         </div>
       </section>
-    </div>
 
-    <!-- Bottom Floating Navigation Toolbar -->
+        <!-- Bottom Floating Navigation Toolbar -->
     <footer class="bottom-toolbar">
       <button class="nav-page-btn" id="prevPageBtn" title="Previous Page (Left Arrow)">
         <i class="fa-solid fa-chevron-left"></i> Previous
@@ -288,6 +567,10 @@
         Next <i class="fa-solid fa-chevron-right"></i>
       </button>
     </footer>
+        </div><!-- End reader-content-wrapper -->
+      </div><!-- End readerCompanionView -->
+
+    
   </div>
 
   <!-- Floating Text Selection Tooltip Menu (Highlight, Note, Dictionary, Speak) -->

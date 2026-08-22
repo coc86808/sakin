@@ -500,6 +500,7 @@ function initApp() {
   if (elements.pageSlider) elements.pageSlider.max = state.totalPages;
   
   initVocabQuiz();
+  VocabHubEngine.init();
   renderTOC();
   renderBookmarks();
   renderNotes();
@@ -3743,3 +3744,503 @@ window.addEventListener('popstate', (e) => {
     }
   }
 });
+
+
+
+// ==========================================================================
+// PRIMARY HERO ENGINE: HSC VOCABULARY MASTERY & MCQ LEARNING HUB
+// ==========================================================================
+
+const VocabHubEngine = {
+  state: {
+    activeView: 'vocab-hub', // 'vocab-hub' | 'reader'
+    mode: 'bangla', // 'bangla' | 'synonym_antonym' | 'definition' | 'hsc_board'
+    unit: 'all',
+    lesson: 'all',
+    count: 10,
+    currentIndex: 0,
+    score: 0,
+    startTime: null,
+    questions: [],
+    timerInterval: null,
+    timerSeconds: 0,
+    streak: parseInt(safeStorage.get('e4t_hub_streak', '3'), 10) || 3,
+    xp: parseInt(safeStorage.get('e4t_hub_xp', '450'), 10) || 450,
+    masteredWords: safeStorage.get('e4t_hub_mastered', []) || []
+  },
+
+  init() {
+    this.bindEvents();
+    this.updateStatsUI();
+    this.populateUnitDropdowns();
+    
+    // Check URL parameters for view preference
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get('view');
+    const pageParam = params.get('page');
+    
+    if (viewParam === 'reader' || (pageParam && !viewParam && params.get('focus_word'))) {
+      this.switchView('reader');
+    } else {
+      this.switchView('vocab-hub');
+      // Auto start initial question set
+      setTimeout(() => this.startPractice(), 200);
+    }
+  },
+
+  switchView(viewName) {
+    this.state.activeView = viewName;
+    const hubView = document.getElementById('vocabHubView');
+    const readerView = document.getElementById('readerCompanionView');
+    const btnHub = document.getElementById('switchVocabHubBtn');
+    const btnReader = document.getElementById('switchReaderBtn');
+    const sidebarToggle = document.getElementById('toggleSidebarBtn');
+    const viewModeToggle = document.getElementById('viewModeToggle');
+
+    if (viewName === 'reader') {
+      if (hubView) hubView.classList.remove('active');
+      if (readerView) readerView.classList.remove('hidden');
+      if (btnHub) btnHub.classList.remove('active');
+      if (btnReader) btnReader.classList.add('active');
+      if (sidebarToggle) sidebarToggle.style.display = '';
+      if (viewModeToggle) viewModeToggle.style.display = '';
+    } else {
+      if (hubView) hubView.classList.add('active');
+      if (readerView) readerView.classList.add('hidden');
+      if (btnHub) btnHub.classList.add('active');
+      if (btnReader) btnReader.classList.remove('active');
+      if (sidebarToggle) sidebarToggle.style.display = 'none';
+      if (viewModeToggle) viewModeToggle.style.display = 'none';
+    }
+
+    if (typeof window !== 'undefined' && window.history) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('view', viewName);
+      window.history.replaceState({ view: viewName }, '', url.search);
+    }
+  },
+
+  bindEvents() {
+    const btnHub = document.getElementById('switchVocabHubBtn');
+    const btnReader = document.getElementById('switchReaderBtn');
+    if (btnHub) btnHub.onclick = () => this.switchView('vocab-hub');
+    if (btnReader) btnReader.onclick = () => this.switchView('reader');
+
+    // Mode Tiles
+    const modeCards = document.querySelectorAll('#hubModeTiles .hub-mode-card');
+    modeCards.forEach(card => {
+      card.onclick = () => {
+        modeCards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        this.state.mode = card.getAttribute('data-mode');
+        this.startPractice();
+      };
+    });
+
+    // Start Button
+    const startBtn = document.getElementById('hubStartQuizBtn');
+    if (startBtn) startBtn.onclick = () => this.startPractice();
+
+    // Next MCQ Button
+    const nextBtn = document.getElementById('fbNextMcqBtn');
+    if (nextBtn) nextBtn.onclick = () => this.nextQuestion();
+
+    // Jump to Book Button from Feedback
+    const jumpBtn = document.getElementById('fbJumpToBookBtn');
+    if (jumpBtn) {
+      jumpBtn.onclick = () => {
+        const q = this.state.questions[this.state.currentIndex];
+        if (q) {
+          const targetPage = q.page || 7;
+          this.switchView('reader');
+          goToPage(targetPage, false, false);
+          if (q.word) {
+            setTimeout(() => {
+              focusAndHighlightWordInText(q.word);
+            }, 300);
+          }
+        }
+      };
+    }
+
+    // Audio Listen Button
+    const audioBtn = document.getElementById('mcqAudioBtn');
+    if (audioBtn) {
+      audioBtn.onclick = () => {
+        const q = this.state.questions[this.state.currentIndex];
+        if (q && q.word) {
+          TTSEngine.speak(q.word);
+        }
+      };
+    }
+
+    // Results Buttons
+    const resRestartBtn = document.getElementById('resRestartBtn');
+    if (resRestartBtn) resRestartBtn.onclick = () => this.startPractice();
+
+    const resReaderBtn = document.getElementById('resOpenReaderBtn');
+    if (resReaderBtn) resReaderBtn.onclick = () => this.switchView('reader');
+
+    // Unit filter change updates lesson dropdown
+    const unitSelect = document.getElementById('hubUnitSelect');
+    if (unitSelect) {
+      unitSelect.onchange = () => {
+        this.updateLessonDropdown(unitSelect.value);
+      };
+    }
+  },
+
+  populateUnitDropdowns() {
+    this.updateLessonDropdown('all');
+  },
+
+  updateLessonDropdown(unitVal) {
+    const lessonSelect = document.getElementById('hubLessonSelect');
+    if (!lessonSelect) return;
+    lessonSelect.innerHTML = '<option value="all">📖 All Lessons (পুরো ইউনিট)</option>';
+
+    const allVocab = window.VOCAB_DATA || [];
+    const lessonSet = new Set();
+    allVocab.forEach(item => {
+      if (unitVal === 'all' || String(item.unit) === String(unitVal)) {
+        if (item.lesson) lessonSet.add(item.lesson);
+      }
+    });
+
+    Array.from(lessonSet).sort((a, b) => a - b).forEach(lNum => {
+      const opt = document.createElement('option');
+      opt.value = lNum;
+      opt.textContent = `Lesson ${lNum}`;
+      lessonSelect.appendChild(opt);
+    });
+  },
+
+  updateStatsUI() {
+    const elStreak = document.getElementById('hubStreakVal');
+    const elMastered = document.getElementById('hubMasteredVal');
+    const elAccuracy = document.getElementById('hubAccuracyVal');
+    const elXp = document.getElementById('hubXpVal');
+
+    const totalWords = (window.VOCAB_DATA ? window.VOCAB_DATA.length : 255) || 255;
+    const masteredCount = this.state.masteredWords.length;
+
+    if (elStreak) elStreak.textContent = `${this.state.streak} Days`;
+    if (elMastered) elMastered.textContent = `${masteredCount} / ${totalWords}`;
+    if (elXp) elXp.textContent = `${this.state.xp} XP`;
+    if (elAccuracy) {
+      const attempts = safeStorage.get('e4t_hub_total_attempts', 0);
+      const corrects = safeStorage.get('e4t_hub_total_corrects', 0);
+      if (attempts > 0) {
+        elAccuracy.textContent = `${Math.round((corrects / attempts) * 100)}%`;
+      } else {
+        elAccuracy.textContent = '100%';
+      }
+    }
+  },
+
+  startPractice() {
+    const unitSelect = document.getElementById('hubUnitSelect');
+    const lessonSelect = document.getElementById('hubLessonSelect');
+    const countSelect = document.getElementById('hubCountSelect');
+
+    const selUnit = unitSelect ? unitSelect.value : 'all';
+    const selLesson = lessonSelect ? lessonSelect.value : 'all';
+    const selCount = countSelect ? countSelect.value : '10';
+
+    let allItems = (window.VOCAB_DATA || []).slice();
+    if (allItems.length === 0 && window.BANGLA_DICT_DATA) {
+      allItems = Object.keys(window.BANGLA_DICT_DATA).map(w => ({
+        word: w,
+        bangla: window.BANGLA_DICT_DATA[w].bangla || '',
+        correctDefinition: window.BANGLA_DICT_DATA[w].definition || '',
+        synonyms: window.BANGLA_DICT_DATA[w].synonyms || '',
+        antonyms: window.BANGLA_DICT_DATA[w].antonyms || '',
+        textbookUseCase: window.BANGLA_DICT_DATA[w].textbookUseCase || '',
+        page: 7,
+        unit: 1,
+        lesson: 1
+      }));
+    }
+
+    let filtered = allItems.filter(item => {
+      const uMatch = (selUnit === 'all' || String(item.unit) === String(selUnit));
+      const lMatch = (selLesson === 'all' || String(item.lesson) === String(selLesson));
+      return uMatch && lMatch;
+    });
+
+    if (filtered.length === 0) filtered = allItems;
+
+    // Shuffle questions
+    for (let i = filtered.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+    }
+
+    const limit = selCount === 'all' ? filtered.length : parseInt(selCount, 10);
+    this.state.questions = filtered.slice(0, limit);
+    this.state.currentIndex = 0;
+    this.state.score = 0;
+    this.state.startTime = Date.now();
+
+    const mcqCard = document.getElementById('hubMcqCard');
+    const resultsCard = document.getElementById('hubResultsCard');
+    if (mcqCard) mcqCard.classList.remove('hidden');
+    if (resultsCard) resultsCard.classList.add('hidden');
+
+    this.renderQuestion(0);
+  },
+
+  renderQuestion(index) {
+    if (index >= this.state.questions.length) {
+      this.showResults();
+      return;
+    }
+
+    const q = this.state.questions[index];
+    const total = this.state.questions.length;
+
+    const elCurrentNum = document.getElementById('mcqCurrentNum');
+    const elTotalNum = document.getElementById('mcqTotalNum');
+    const elUnitPill = document.getElementById('mcqUnitPill');
+    const elTargetWord = document.getElementById('mcqTargetWord');
+    const elPosTag = document.getElementById('mcqPosTag');
+    const elQuestionText = document.getElementById('mcqQuestionText');
+    const optionsGrid = document.getElementById('mcqOptionsGrid');
+    const feedbackCard = document.getElementById('mcqFeedbackCard');
+
+    if (elCurrentNum) elCurrentNum.textContent = index + 1;
+    if (elTotalNum) elTotalNum.textContent = total;
+    if (elUnitPill) elUnitPill.innerHTML = `<i class="fa-solid fa-book"></i> Unit ${q.unit || 1}: Lesson ${q.lesson || 1}`;
+    if (elTargetWord) elTargetWord.textContent = (q.word || '').charAt(0).toUpperCase() + (q.word || '').slice(1);
+    if (elPosTag) elPosTag.textContent = q.partOfSpeech || 'noun / adj';
+
+    if (feedbackCard) feedbackCard.classList.add('hidden');
+
+    // Build question prompt and options based on active mode
+    let promptText = '';
+    let correctAnswer = '';
+    let distractors = [];
+
+    const allVocab = window.VOCAB_DATA || [];
+    const otherItems = allVocab.filter(v => v.word.toLowerCase() !== q.word.toLowerCase());
+
+    if (this.state.mode === 'bangla') {
+      promptText = `শব্দটির সঠিক বাংলা অর্থ কোনটি? (What is the correct Bangla meaning of "${q.word}"?)`;
+      correctAnswer = q.bangla || 'পাঠ্যবইয়ের অর্থ';
+      
+      const otherBangla = otherItems.map(v => v.bangla).filter(b => b && b !== correctAnswer);
+      for (let i = otherBangla.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [otherBangla[i], otherBangla[j]] = [otherBangla[j], otherBangla[i]];
+      }
+      distractors = otherBangla.slice(0, 3);
+    } else if (this.state.mode === 'synonym_antonym') {
+      const isSyn = Math.random() > 0.4;
+      if (isSyn && q.synonyms && q.synonyms !== 'N/A') {
+        const synList = q.synonyms.split(',').map(s => s.trim());
+        correctAnswer = synList[0];
+        promptText = `Which word is a SYNONYM (সমার্থক শব্দ) for "${q.word}"?`;
+      } else if (q.antonyms && q.antonyms !== 'N/A') {
+        const antList = q.antonyms.split(',').map(a => a.trim());
+        correctAnswer = antList[0];
+        promptText = `Which word is an ANTONYM (বিপরীতার্থক শব্দ) for "${q.word}"?`;
+      } else {
+        correctAnswer = q.correctDefinition || 'NCTB meaning';
+        promptText = `What is the accurate definition of "${q.word}"?`;
+      }
+      
+      const otherWords = otherItems.map(v => v.word).filter(w => w !== correctAnswer);
+      for (let i = otherWords.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [otherWords[i], otherWords[j]] = [otherWords[j], otherWords[i]];
+      }
+      distractors = otherWords.slice(0, 3);
+    } else if (this.state.mode === 'hsc_board') {
+      promptText = `[HSC Board Special] What is the most appropriate contextual meaning of "${q.word}" in English For Today?`;
+      correctAnswer = q.correctDefinition || q.bangla || 'Standard meaning';
+      distractors = q.options ? q.options.filter(o => o !== correctAnswer).slice(0, 3) : otherItems.slice(0, 3).map(o => o.correctDefinition);
+    } else {
+      promptText = `What is the accurate English definition of "${q.word}"?`;
+      correctAnswer = q.correctDefinition || 'NCTB textbook definition';
+      distractors = q.options ? q.options.filter(o => o !== correctAnswer).slice(0, 3) : otherItems.slice(0, 3).map(o => o.correctDefinition);
+    }
+
+    // Combine & shuffle options
+    const optionPool = [correctAnswer, ...distractors];
+    for (let i = optionPool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [optionPool[i], optionPool[j]] = [optionPool[j], optionPool[i]];
+    }
+
+    if (elQuestionText) elQuestionText.textContent = promptText;
+
+    if (optionsGrid) {
+      optionsGrid.innerHTML = '';
+      const letters = ['A', 'B', 'C', 'D'];
+      optionPool.forEach((optText, optIdx) => {
+        const btn = document.createElement('button');
+        btn.className = 'hub-option-btn';
+        btn.innerHTML = `
+          <div class="option-badge-letter">${letters[optIdx]}</div>
+          <div class="option-text-label">${optText}</div>
+        `;
+        btn.onclick = () => this.handleOptionClick(optText, correctAnswer, btn, q);
+        optionsGrid.appendChild(btn);
+      });
+    }
+
+    this.startTimer();
+  },
+
+  startTimer() {
+    if (this.state.timerInterval) clearInterval(this.state.timerInterval);
+    this.state.timerSeconds = 0;
+    const timerText = document.getElementById('mcqTimerText');
+    this.state.timerInterval = setInterval(() => {
+      this.state.timerSeconds++;
+      if (timerText) {
+        const m = Math.floor(this.state.timerSeconds / 60);
+        const s = this.state.timerSeconds % 60;
+        timerText.textContent = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+      }
+    }, 1000);
+  },
+
+  handleOptionClick(selectedText, correctAnswer, clickedBtn, wordObj) {
+    if (this.state.timerInterval) clearInterval(this.state.timerInterval);
+
+    const isCorrect = (selectedText === correctAnswer);
+    const allOptionBtns = document.querySelectorAll('.hub-option-btn');
+    allOptionBtns.forEach(btn => {
+      btn.disabled = true;
+      const textLabel = btn.querySelector('.option-text-label');
+      if (textLabel && textLabel.textContent.trim() === correctAnswer.trim()) {
+        btn.classList.add('correct');
+      }
+    });
+
+    if (isCorrect) {
+      this.state.score++;
+      this.state.xp += 15;
+      AudioEngine.playCorrect();
+      clickedBtn.classList.add('correct');
+      
+      if (wordObj && wordObj.word && !this.state.masteredWords.includes(wordObj.word.toLowerCase())) {
+        this.state.masteredWords.push(wordObj.word.toLowerCase());
+        safeStorage.set('e4t_hub_mastered', this.state.masteredWords);
+      }
+    } else {
+      AudioEngine.playWrong();
+      clickedBtn.classList.add('wrong');
+    }
+
+    // Update attempts
+    const prevAttempts = safeStorage.get('e4t_hub_total_attempts', 0);
+    const prevCorrects = safeStorage.get('e4t_hub_total_corrects', 0);
+    safeStorage.set('e4t_hub_total_attempts', prevAttempts + 1);
+    if (isCorrect) safeStorage.set('e4t_hub_total_corrects', prevCorrects + 1);
+    safeStorage.set('e4t_hub_xp', this.state.xp);
+    this.updateStatsUI();
+
+    // Populate feedback card
+    this.showFeedbackCard(isCorrect, wordObj);
+  },
+
+  showFeedbackCard(isCorrect, wordObj) {
+    const feedbackCard = document.getElementById('mcqFeedbackCard');
+    const badge = document.getElementById('feedbackStatusBadge');
+    const fbBangla = document.getElementById('fbBanglaMeaning');
+    const fbEng = document.getElementById('fbEnglishMeaning');
+    const fbSyn = document.getElementById('fbSynonyms');
+    const fbAnt = document.getElementById('fbAntonyms');
+    const fbUseCase = document.getElementById('fbUseCase');
+    const fbPageNum = document.getElementById('fbBookPageNum');
+
+    if (badge) {
+      if (isCorrect) {
+        badge.className = 'feedback-status-badge correct';
+        badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> <strong>অভিনন্দন! সঠিক উত্তর!</strong> (+15 XP)';
+      } else {
+        badge.className = 'feedback-status-badge wrong';
+        badge.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> <strong>ভুল উত্তর! সঠিক উত্তরটি নিচে দেখে নিন।</strong>';
+      }
+    }
+
+    if (fbBangla) fbBangla.textContent = wordObj.bangla || 'পাঠ্যবই সংশ্লিষ্ট বাংলা অর্থ';
+    if (fbEng) fbEng.textContent = wordObj.correctDefinition || 'Contextual textbook definition';
+    
+    if (fbSyn) {
+      fbSyn.innerHTML = '';
+      const synStr = wordObj.synonyms || 'N/A';
+      if (synStr !== 'N/A') {
+        synStr.split(',').forEach(s => {
+          const pill = document.createElement('span');
+          pill.className = 'pill syn-pill';
+          pill.textContent = s.trim();
+          fbSyn.appendChild(pill);
+        });
+      } else {
+        fbSyn.textContent = 'N/A';
+      }
+    }
+
+    if (fbAnt) {
+      fbAnt.innerHTML = '';
+      const antStr = wordObj.antonyms || 'N/A';
+      if (antStr !== 'N/A') {
+        antStr.split(',').forEach(a => {
+          const pill = document.createElement('span');
+          pill.className = 'pill ant-pill';
+          pill.textContent = a.trim();
+          fbAnt.appendChild(pill);
+        });
+      } else {
+        fbAnt.textContent = 'N/A';
+      }
+    }
+
+    if (fbUseCase) {
+      fbUseCase.textContent = wordObj.textbookUseCase || `The word "${wordObj.word}" is used prominently in NCTB English For Today.`;
+    }
+
+    if (fbPageNum) {
+      fbPageNum.textContent = `Page ${wordObj.page || 7}`;
+    }
+
+    if (feedbackCard) feedbackCard.classList.remove('hidden');
+  },
+
+  nextQuestion() {
+    this.state.currentIndex++;
+    this.renderQuestion(this.state.currentIndex);
+  },
+
+  showResults() {
+    if (this.state.timerInterval) clearInterval(this.state.timerInterval);
+    const mcqCard = document.getElementById('hubMcqCard');
+    const resultsCard = document.getElementById('hubResultsCard');
+    if (mcqCard) mcqCard.classList.add('hidden');
+    if (resultsCard) resultsCard.classList.remove('hidden');
+
+    const total = this.state.questions.length;
+    const score = this.state.score;
+    const pct = Math.round((score / total) * 100);
+    const timeSpentSec = Math.round((Date.now() - (this.state.startTime || Date.now())) / 1000);
+    const m = Math.floor(timeSpentSec / 60);
+    const s = timeSpentSec % 60;
+
+    const resScoreBig = document.getElementById('resScoreBig');
+    const resPctBig = document.getElementById('resPctBig');
+    const resXpEarned = document.getElementById('resXpEarned');
+    const resTimeTaken = document.getElementById('resTimeTaken');
+    const resNewMastered = document.getElementById('resNewMastered');
+
+    if (resScoreBig) resScoreBig.textContent = `${score}/${total}`;
+    if (resPctBig) resPctBig.textContent = `${pct}% Accuracy`;
+    if (resXpEarned) resXpEarned.textContent = `+${score * 15} XP`;
+    if (resTimeTaken) resTimeTaken.textContent = `${m}m ${s}s`;
+    if (resNewMastered) resNewMastered.textContent = `${score} Words`;
+
+    AudioEngine.playLevelUp();
+  }
+};
