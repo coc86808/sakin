@@ -6,18 +6,18 @@
   <title>Sakin Admin Console • English For Today</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Fira+Code:wght@400;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <style>
     :root {
-      --bg-base: #0b0f19;
-      --bg-surface: #111827;
-      --bg-card: #1f2937;
-      --bg-elevated: #374151;
-      --border-color: #374151;
-      --text-main: #f9fafb;
-      --text-muted: #9ca3af;
+      --bg-base: #0f172a;
+      --bg-surface: #1e293b;
+      --bg-card: #334155;
+      --bg-elevated: #475569;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
       --accent: #6366f1;
       --accent-hover: #4f46e5;
       --accent-glow: rgba(99, 102, 241, 0.3);
@@ -28,6 +28,9 @@
       --radius-md: 10px;
       --radius-lg: 16px;
       --radius-full: 9999px;
+      --doc-bg: #f1f5f9;
+      --doc-paper: #ffffff;
+      --doc-text: #0f172a;
     }
 
     * {
@@ -153,7 +156,7 @@
     .admin-navbar {
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border-color);
-      padding: 0.85rem 1.5rem;
+      padding: 0.75rem 1.5rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -169,20 +172,20 @@
     }
 
     .admin-brand-icon {
-      width: 38px;
-      height: 38px;
+      width: 36px;
+      height: 36px;
       background: linear-gradient(135deg, var(--accent), #8b5cf6);
       border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
       color: #fff;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
     }
 
     .admin-brand-title {
       font-weight: 800;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       letter-spacing: -0.3px;
     }
 
@@ -263,13 +266,13 @@
     /* Admin Container */
     .admin-container {
       flex: 1;
-      max-width: 1400px;
+      max-width: 1550px;
       width: 100%;
       margin: 0 auto;
-      padding: 1.5rem;
+      padding: 1.25rem 1.5rem;
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
+      gap: 1.25rem;
     }
 
     /* Tabs Navigation */
@@ -285,8 +288,8 @@
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 10px 18px;
-      font-size: 0.95rem;
+      padding: 9px 16px;
+      font-size: 0.92rem;
       font-weight: 700;
       border-radius: var(--radius-md);
       cursor: pointer;
@@ -361,15 +364,18 @@
       color: var(--text-main);
     }
 
-    /* Page Editor Layout */
-    .editor-layout {
+    /* ==========================================================================
+       GOOGLE DOCS RICH TEXT EDITOR EXPERIENCE
+       ========================================================================== */
+    .gdoc-workspace {
       display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 1.5rem;
+      grid-template-columns: 280px 1fr;
+      gap: 1.25rem;
+      align-items: start;
     }
 
-    @media (max-width: 900px) {
-      .editor-layout {
+    @media (max-width: 1024px) {
+      .gdoc-workspace {
         grid-template-columns: 1fr;
       }
     }
@@ -380,15 +386,17 @@
       border-radius: var(--radius-lg);
       padding: 1.25rem;
       height: fit-content;
+      position: sticky;
+      top: 75px;
     }
 
     .page-list-scroll {
-      max-height: 520px;
+      max-height: calc(100vh - 250px);
       overflow-y: auto;
-      margin-top: 1rem;
+      margin-top: 0.85rem;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
 
     .page-item-pill {
@@ -400,7 +408,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       transition: all 0.15s ease;
     }
 
@@ -411,47 +419,282 @@
 
     .page-item-pill.active {
       border-color: var(--accent);
-      background: rgba(99, 102, 241, 0.2);
+      background: rgba(99, 102, 241, 0.25);
       font-weight: 700;
     }
 
-    .editor-main-card {
+    /* Google Doc Window Frame */
+    .gdoc-window {
       background: var(--bg-surface);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
-      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
     }
 
-    .editor-header-bar {
+    /* Top Metadata Bar */
+    .gdoc-top-bar {
+      background: #182234;
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 1.25rem;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .text-editor-textarea {
-      width: 100%;
-      min-height: 420px;
+    .gdoc-doc-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .gdoc-doc-icon {
+      font-size: 1.5rem;
+      color: #3b82f6;
+    }
+
+    .gdoc-title-input {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #fff;
+      font-size: 1.15rem;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      outline: none;
+      width: 280px;
+      transition: all 0.2s ease;
+    }
+
+    .gdoc-title-input:hover, .gdoc-title-input:focus {
+      background: var(--bg-card);
+      border-color: var(--border-color);
+    }
+
+    .gdoc-status-tag {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .gdoc-meta-fields-grid {
+      background: #131c2d;
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 120px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    @media (max-width: 900px) {
+      .gdoc-meta-fields-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .gdoc-meta-input {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 1rem;
-      color: var(--text-main);
-      font-family: 'Fira Code', monospace;
-      font-size: 0.95rem;
-      line-height: 1.6;
-      resize: vertical;
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      color: #fff;
+      font-size: 0.85rem;
       outline: none;
+      width: 100%;
     }
 
-    .text-editor-textarea:focus {
+    .gdoc-meta-input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
-    /* MCQ Studio */
+    /* Google Docs Formatting Toolbar */
+    .gdoc-toolbar {
+      background: #1e293b;
+      border-bottom: 1px solid var(--border-color);
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+      position: sticky;
+      top: 60px;
+      z-index: 10;
+    }
+
+    .gdoc-tool-group {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding: 0 4px;
+      border-right: 1px solid var(--border-color);
+    }
+
+    .gdoc-tool-group:last-child {
+      border-right: none;
+    }
+
+    .gdoc-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #cbd5e1;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .gdoc-btn:hover {
+      background: var(--bg-card);
+      color: #ffffff;
+      border-color: var(--border-color);
+    }
+
+    .gdoc-btn.active {
+      background: rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      border-color: var(--accent);
+    }
+
+    .gdoc-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: #f1f5f9;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      outline: none;
+      cursor: pointer;
+      height: 32px;
+    }
+
+    .gdoc-color-picker-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gdoc-color-input {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    /* Google Doc Canvas Area */
+    .gdoc-canvas-area {
+      background: var(--doc-bg);
+      padding: 30px 20px;
+      min-height: 650px;
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+    }
+
+    /* Google Docs Page Paper Sheet */
+    .gdoc-paper-sheet {
+      background: var(--doc-paper);
+      color: var(--doc-text);
+      width: 100%;
+      max-width: 820px;
+      min-height: 800px;
+      padding: 56px 64px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+      border-radius: 2px;
+      outline: none;
+      font-size: 1.05rem;
+      line-height: 1.75;
+      font-family: 'Merriweather', 'Hind Siliguri', Georgia, serif;
+    }
+
+    .gdoc-paper-sheet:focus {
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2), 0 0 0 2px var(--accent);
+    }
+
+    /* Google Doc Content Styles */
+    .gdoc-paper-sheet h1 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      color: #0f172a;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .gdoc-paper-sheet h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 1rem;
+      margin-bottom: 0.4rem;
+      color: #1e293b;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .gdoc-paper-sheet h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-top: 0.85rem;
+      margin-bottom: 0.4rem;
+      color: #2563eb;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .gdoc-paper-sheet p {
+      margin-bottom: 1rem;
+      text-align: justify;
+    }
+
+    .gdoc-paper-sheet blockquote {
+      border-left: 4px solid #6366f1;
+      padding: 10px 18px;
+      margin: 1.25rem 0;
+      background: #f8fafc;
+      font-style: italic;
+      border-radius: 0 8px 8px 0;
+      color: #334155;
+    }
+
+    .gdoc-paper-sheet ul, .gdoc-paper-sheet ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .gdoc-paper-sheet li {
+      margin-bottom: 0.35rem;
+    }
+
+    .gdoc-paper-sheet hr {
+      border: none;
+      border-top: 2px dashed #cbd5e1;
+      margin: 1.5rem 0;
+    }
+
+    /* Bottom Document Status Bar */
+    .gdoc-status-bar {
+      background: #182234;
+      border-top: 1px solid var(--border-color);
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* MCQ Studio Styles */
     .mcq-toolbar {
       display: flex;
       align-items: center;
@@ -750,11 +993,11 @@
     <main class="admin-container">
       <!-- TABS BAR -->
       <div class="admin-tabs-bar">
-        <button class="tab-btn active" onclick="switchTab('overview')">
+        <button class="tab-btn" onclick="switchTab('overview')">
           <i class="fa-solid fa-chart-pie"></i> Overview
         </button>
-        <button class="tab-btn" onclick="switchTab('text-editor')">
-          <i class="fa-solid fa-book-open"></i> Edit Book Text (295 Pages)
+        <button class="tab-btn active" onclick="switchTab('text-editor')">
+          <i class="fa-solid fa-file-lines"></i> 📄 Google Docs Page Editor (295 Pages)
         </button>
         <button class="tab-btn" onclick="switchTab('mcq-studio')">
           <i class="fa-solid fa-graduation-cap"></i> MCQ & Vocab Studio
@@ -765,7 +1008,7 @@
       </div>
 
       <!-- TAB 1: OVERVIEW -->
-      <div class="tab-pane active" id="tab-overview">
+      <div class="tab-pane" id="tab-overview">
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-icon-wrap">
@@ -808,14 +1051,14 @@
           </div>
         </div>
 
-        <div class="editor-main-card">
-          <h3 style="margin-bottom: 0.75rem;"><i class="fa-solid fa-bolt" style="color: #facc15;"></i> Quick Admin Actions</h3>
-          <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.92rem;">
-            From this panel, you can instantly modify any textbook page text, add new multiple choice vocabulary questions, and publish changes straight to Vercel and GitHub.
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem;">
+          <h3 style="margin-bottom: 0.75rem;"><i class="fa-solid fa-bolt" style="color: #facc15;"></i> Google Docs Page Editor Features</h3>
+          <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.92rem; line-height: 1.6;">
+            Edit any textbook page with rich text formatting (Bold, Italic, Headings, Highlights, Colors, Bullet/Numbered Lists, Poem blocks, Alignments) exactly like Google Docs. All edits synchronize directly to your website reader and spaciously format textbook lessons.
           </p>
           <div style="display: flex; gap: 12px; flex-wrap: wrap;">
             <button class="btn-login" style="width: auto; padding: 10px 20px;" onclick="switchTab('text-editor')">
-              <i class="fa-solid fa-pen-to-square"></i> Open Page Text Editor
+              <i class="fa-solid fa-pen-to-square"></i> Open Google Docs Editor
             </button>
             <button class="btn-add-mcq" onclick="openAddMCQModal()">
               <i class="fa-solid fa-plus-circle"></i> Add New MCQ Question
@@ -827,46 +1070,165 @@
         </div>
       </div>
 
-      <!-- TAB 2: PAGE TEXT EDITOR -->
-      <div class="tab-pane" id="tab-text-editor">
-        <div class="editor-layout">
+      <!-- TAB 2: GOOGLE DOCS PAGE EDITOR -->
+      <div class="tab-pane active" id="tab-text-editor">
+        <div class="gdoc-workspace">
           <!-- Sidebar Page Selector -->
           <div class="page-sidebar-box">
-            <h4><i class="fa-solid fa-list-ol"></i> Select Page (1–295)</h4>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <h4><i class="fa-solid fa-list-ol"></i> Pages (1–295)</h4>
+              <span class="admin-brand-badge" id="sidebarPageBadge">Page 1</span>
+            </div>
             <div style="margin-top: 0.75rem;">
-              <input type="text" id="pageSearchInput" class="form-control" placeholder="Search page or title..." oninput="filterPageList(this.value)">
+              <input type="text" id="pageSearchInput" class="form-control" placeholder="Search page number or title..." oninput="filterPageList(this.value)">
             </div>
             <div class="page-list-scroll" id="pageListContainer">
-              <!-- Dynamically populated -->
+              <!-- Populated dynamically -->
             </div>
           </div>
 
-          <!-- Main Text Editor Form -->
-          <div class="editor-main-card">
-            <div class="editor-header-bar">
+          <!-- Main Google Docs Window -->
+          <div class="gdoc-window">
+            <!-- 1. Top Header Bar -->
+            <div class="gdoc-top-bar">
+              <div class="gdoc-doc-meta">
+                <i class="fa-solid fa-file-lines gdoc-doc-icon"></i>
+                <div>
+                  <input type="text" id="docPageHeaderTitle" class="gdoc-title-input" value="Unit 1: Lesson 1" onchange="syncMetaFromHeader()">
+                  <div class="gdoc-status-tag" id="docSaveStatus">
+                    <i class="fa-solid fa-cloud-check" style="color: #34d399;"></i> <span id="docStatusText">All changes saved in local cache</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="btn-publish" onclick="saveCurrentPageText()">
+                  <i class="fa-solid fa-floppy-disk"></i> Save Document
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. Metadata Bar (Unit, Lesson, Page, Vocab) -->
+            <div class="gdoc-meta-fields-grid">
               <div>
-                <h3 id="currentEditingPageTitle">Editing Page 1</h3>
-                <span style="font-size: 0.82rem; color: var(--text-muted);" id="currentEditingPageMeta">Unit 1: Education and Life • Lesson 1: The Parrot's Tale</span>
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Unit Title</label>
+                <input type="text" id="editUnitTitle" class="gdoc-meta-input" placeholder="e.g. Unit 2: Art and Craft">
               </div>
-              <button class="btn-publish" onclick="saveCurrentPageText()">
-                <i class="fa-solid fa-floppy-disk"></i> Save Page Changes
-              </button>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem;">
-              <div class="form-group">
-                <label>Unit Title</label>
-                <input type="text" id="editUnitTitle" class="form-control">
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Lesson Title</label>
+                <input type="text" id="editLessonTitle" class="gdoc-meta-input" placeholder="e.g. Lesson 1: What is Beauty?">
               </div>
-              <div class="form-group">
-                <label>Lesson Title</label>
-                <input type="text" id="editLessonTitle" class="form-control">
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Printed Page</label>
+                <input type="number" id="editPrintedPage" class="gdoc-meta-input" placeholder="30">
+              </div>
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Target Vocab (comma-separated)</label>
+                <input type="text" id="editTargetVocab" class="gdoc-meta-input" placeholder="beauty, aesthetic, appreciate">
               </div>
             </div>
 
-            <div class="form-group">
-              <label><i class="fa-solid fa-align-left"></i> Page Text Content (Lines & Paragraphs)</label>
-              <textarea id="editPageText" class="text-editor-textarea" placeholder="Paste or type page text here..."></textarea>
+            <!-- 3. Google Docs Formatting Ribbon Toolbar -->
+            <div class="gdoc-toolbar" id="gdocToolbar">
+              <!-- History -->
+              <div class="gdoc-tool-group">
+                <button class="gdoc-btn" onclick="execDocCmd('undo')" title="Undo (Ctrl+Z)"><i class="fa-solid fa-rotate-left"></i></button>
+                <button class="gdoc-btn" onclick="execDocCmd('redo')" title="Redo (Ctrl+Y)"><i class="fa-solid fa-rotate-right"></i></button>
+                <button class="gdoc-btn" onclick="window.print()" title="Print"><i class="fa-solid fa-print"></i></button>
+              </div>
+
+              <!-- Paragraph Styles / Headings -->
+              <div class="gdoc-tool-group">
+                <select class="gdoc-select" id="docHeadingSelect" onchange="formatHeading(this.value)" title="Styles">
+                  <option value="p">Normal text</option>
+                  <option value="h1">Title (H1)</option>
+                  <option value="h2">Heading 1 (H2)</option>
+                  <option value="h3">Heading 2 (H3)</option>
+                  <option value="blockquote">Poem / Quote Box</option>
+                </select>
+
+                <select class="gdoc-select" id="docFontSelect" onchange="formatFontFamily(this.value)" title="Font">
+                  <option value="Merriweather, serif">Merriweather (Serif)</option>
+                  <option value="'Plus Jakarta Sans', sans-serif" selected>Plus Jakarta Sans</option>
+                  <option value="'Hind Siliguri', sans-serif">Hind Siliguri (Bangla)</option>
+                  <option value="Arial, sans-serif">Arial</option>
+                  <option value="'Fira Code', monospace">Monospace</option>
+                </select>
+
+                <select class="gdoc-select" id="docSizeSelect" onchange="formatFontSize(this.value)" style="width: 60px;" title="Font Size">
+                  <option value="1">12</option>
+                  <option value="2">14</option>
+                  <option value="3" selected>16</option>
+                  <option value="4">18</option>
+                  <option value="5">24</option>
+                  <option value="6">32</option>
+                </select>
+              </div>
+
+              <!-- Text Formatting (B, I, U, S) -->
+              <div class="gdoc-tool-group">
+                <button class="gdoc-btn" id="toolBold" onclick="execDocCmd('bold')" title="Bold (Ctrl+B)"><strong>B</strong></button>
+                <button class="gdoc-btn" id="toolItalic" onclick="execDocCmd('italic')" title="Italic (Ctrl+I)"><em>I</em></button>
+                <button class="gdoc-btn" id="toolUnderline" onclick="execDocCmd('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
+                <button class="gdoc-btn" id="toolStrike" onclick="execDocCmd('strikeThrough')" title="Strikethrough"><s>S</s></button>
+                
+                <!-- Text Color -->
+                <div class="gdoc-color-picker-wrap" title="Text color">
+                  <button class="gdoc-btn"><i class="fa-solid fa-font" style="border-bottom: 3px solid #3b82f6;"></i></button>
+                  <input type="color" class="gdoc-color-input" onchange="execDocCmd('foreColor', this.value)" value="#0f172a">
+                </div>
+
+                <!-- Highlight Color -->
+                <div class="gdoc-color-picker-wrap" title="Highlight color">
+                  <button class="gdoc-btn"><i class="fa-solid fa-highlighter" style="color: #facc15;"></i></button>
+                  <input type="color" class="gdoc-color-input" onchange="execDocCmd('hiliteColor', this.value)" value="#fef08a">
+                </div>
+              </div>
+
+              <!-- Alignment & Lists -->
+              <div class="gdoc-tool-group">
+                <button class="gdoc-btn" onclick="execDocCmd('justifyLeft')" title="Left align"><i class="fa-solid fa-align-left"></i></button>
+                <button class="gdoc-btn" onclick="execDocCmd('justifyCenter')" title="Center align"><i class="fa-solid fa-align-center"></i></button>
+                <button class="gdoc-btn" onclick="execDocCmd('justifyRight')" title="Right align"><i class="fa-solid fa-align-right"></i></button>
+                <button class="gdoc-btn" onclick="execDocCmd('justifyFull')" title="Justify"><i class="fa-solid fa-align-justify"></i></button>
+
+                <button class="gdoc-btn" onclick="execDocCmd('insertUnorderedList')" title="Bulleted list"><i class="fa-solid fa-list-ul"></i></button>
+                <button class="gdoc-btn" onclick="execDocCmd('insertOrderedList')" title="Numbered list"><i class="fa-solid fa-list-ol"></i></button>
+                <button class="gdoc-btn" onclick="execDocCmd('outdent')" title="Decrease indent"><i class="fa-solid fa-outdent"></i></button>
+                <button class="gdoc-btn" onclick="execDocCmd('indent')" title="Increase indent"><i class="fa-solid fa-indent"></i></button>
+              </div>
+
+              <!-- Insert Items -->
+              <div class="gdoc-tool-group">
+                <button class="gdoc-btn" onclick="insertLinkPrompt()" title="Insert link"><i class="fa-solid fa-link"></i></button>
+                <button class="gdoc-btn" onclick="insertPoemStanzaBox()" title="Insert Poem Stanza Box"><i class="fa-solid fa-quote-left"></i></button>
+                <button class="gdoc-btn" onclick="execDocCmd('insertHorizontalRule')" title="Horizontal line"><i class="fa-solid fa-minus"></i></button>
+                <button class="gdoc-btn" onclick="execDocCmd('removeFormat')" title="Clear formatting"><i class="fa-solid fa-text-slash"></i></button>
+              </div>
+            </div>
+
+            <!-- 4. Google Docs Paper Sheet Canvas -->
+            <div class="gdoc-canvas-area">
+              <div 
+                id="docPaperSheet" 
+                class="gdoc-paper-sheet" 
+                contenteditable="true" 
+                spellcheck="true"
+                oninput="handleDocInput()"
+                onkeyup="updateToolbarState()"
+                onmouseup="updateToolbarState()">
+                <!-- Rich Document Content Rendered Here -->
+              </div>
+            </div>
+
+            <!-- 5. Document Bottom Status Bar -->
+            <div class="gdoc-status-bar">
+              <div>
+                <span id="docWordCount">0 words</span> • <span id="docCharCount">0 characters</span> • <span id="docReadingTime">1 min read</span>
+              </div>
+              <div>
+                <span>English For Today • Clean WYSIWYG Mode</span>
+              </div>
             </div>
           </div>
         </div>
@@ -890,7 +1252,7 @@
 
       <!-- TAB 4: DATA SYNC & EXPORT -->
       <div class="tab-pane" id="tab-data-sync">
-        <div class="editor-main-card">
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem;">
           <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-code-branch"></i> Direct GitHub & Vercel Publishing</h3>
           <p style="color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.6;">
             All edits you make to textbook pages and MCQs can be published directly to your live GitHub repository (<code>coc86808/sakin</code>). Once committed, Vercel automatically deploys the latest version to all visitors in seconds.
@@ -1010,7 +1372,7 @@
   
   <script>
     // ============================================================================
-    // SAKIN ADMIN CONSOLE LOGIC & GITHUB PUBLISHING ENGINE
+    // SAKIN ADMIN CONSOLE • GOOGLE DOCS RICH EDITOR ENGINE & SYNC
     // ============================================================================
 
     const ADMIN_CREDENTIALS = {
@@ -1031,7 +1393,8 @@
       bookData: null,
       vocabList: [],
       currentPageNum: 1,
-      authenticated: false
+      authenticated: false,
+      unsavedChanges: false
     };
 
     // 1. AUTHENTICATION
@@ -1043,6 +1406,12 @@
         showDashboard();
         if (urlParams.get('tab')) {
           setTimeout(() => switchTab(urlParams.get('tab')), 100);
+        }
+        if (urlParams.get('page') || urlParams.get('p')) {
+          const pVal = parseInt(urlParams.get('page') || urlParams.get('p'), 10);
+          if (!isNaN(pVal) && pVal >= 1 && pVal <= 295) {
+            setTimeout(() => selectEditingPage(pVal), 150);
+          }
         }
         return;
       }
@@ -1088,7 +1457,6 @@
 
     // 2. DATA INITIALIZATION
     function loadAdminData() {
-      // Load book data
       const localBook = localStorage.getItem('e4t_custom_book_data');
       if (localBook) {
         try { adminState.bookData = JSON.parse(localBook); } catch (e) {}
@@ -1097,7 +1465,6 @@
         adminState.bookData = JSON.parse(JSON.stringify(window.BOOK_DATA));
       }
 
-      // Load vocab list
       const localVocab = localStorage.getItem('e4t_custom_vocab_data');
       if (localVocab) {
         try { adminState.vocabList = JSON.parse(localVocab); } catch (e) {}
@@ -1118,8 +1485,10 @@
       const pagesCount = adminState.bookData && adminState.bookData.pages ? adminState.bookData.pages.length : 295;
       const mcqCount = adminState.vocabList ? adminState.vocabList.length : 48;
 
-      document.getElementById('statTotalPages').textContent = pagesCount;
-      document.getElementById('statTotalMCQs').textContent = mcqCount;
+      const sp = document.getElementById('statTotalPages');
+      const sm = document.getElementById('statTotalMCQs');
+      if (sp) sp.textContent = pagesCount;
+      if (sm) sm.textContent = mcqCount;
     }
 
     // 3. TAB SWITCHING
@@ -1134,7 +1503,116 @@
       if (activeBtn) activeBtn.classList.add('active');
     }
 
-    // 4. PAGE TEXT EDITOR
+    // 4. GOOGLE DOCS EDITING & FORMATTING ENGINE
+    function execDocCmd(command, value = null) {
+      document.getElementById('docPaperSheet').focus();
+      document.execCommand(command, false, value);
+      handleDocInput();
+      updateToolbarState();
+    }
+
+    function formatHeading(tag) {
+      document.getElementById('docPaperSheet').focus();
+      if (tag === 'blockquote') {
+        document.execCommand('formatBlock', false, 'blockquote');
+      } else {
+        document.execCommand('formatBlock', false, `<${tag}>`);
+      }
+      handleDocInput();
+    }
+
+    function formatFontFamily(font) {
+      document.getElementById('docPaperSheet').focus();
+      document.execCommand('fontName', false, font);
+      handleDocInput();
+    }
+
+    function formatFontSize(size) {
+      document.getElementById('docPaperSheet').focus();
+      document.execCommand('fontSize', false, size);
+      handleDocInput();
+    }
+
+    function insertLinkPrompt() {
+      const url = prompt('Enter Web Link URL (e.g. https://...):', 'https://');
+      if (url && url !== 'https://') {
+        execDocCmd('createLink', url);
+      }
+    }
+
+    function insertPoemStanzaBox() {
+      const selection = window.getSelection();
+      const selectedText = selection.toString() || 'Enter poem verse line 1\nEnter poem verse line 2';
+      const formattedStanza = `<blockquote>${selectedText.replace(/\n/g, '<br>')}</blockquote><p><br></p>`;
+      document.execCommand('insertHTML', false, formattedStanza);
+      handleDocInput();
+    }
+
+    function updateToolbarState() {
+      try {
+        const isBold = document.queryCommandState('bold');
+        const isItalic = document.queryCommandState('italic');
+        const isUnderline = document.queryCommandState('underline');
+        const isStrike = document.queryCommandState('strikeThrough');
+
+        document.getElementById('toolBold')?.classList.toggle('active', isBold);
+        document.getElementById('toolItalic')?.classList.toggle('active', isItalic);
+        document.getElementById('toolUnderline')?.classList.toggle('active', isUnderline);
+        document.getElementById('toolStrike')?.classList.toggle('active', isStrike);
+      } catch (e) {}
+    }
+
+    function handleDocInput() {
+      adminState.unsavedChanges = true;
+      const statusEl = document.getElementById('docStatusText');
+      if (statusEl) statusEl.textContent = 'Unsaved changes...';
+
+      const sheet = document.getElementById('docPaperSheet');
+      if (!sheet) return;
+
+      const text = sheet.innerText || '';
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      const chars = text.length;
+      const readMin = Math.max(1, Math.ceil(words / 180));
+
+      document.getElementById('docWordCount').textContent = `${words} words`;
+      document.getElementById('docCharCount').textContent = `${chars} characters`;
+      document.getElementById('docReadingTime').textContent = `${readMin} min read`;
+    }
+
+    // Convert raw text into rich HTML paragraphs & headings for Google Doc sheet
+    function textToDocHtml(rawText) {
+      if (!rawText || !rawText.trim()) {
+        return '<p>Type or paste textbook lesson text here...</p>';
+      }
+
+      // If already contains HTML markup
+      if (rawText.includes('<p>') || rawText.includes('<h3>') || rawText.includes('<h2>') || rawText.includes('<blockquote>')) {
+        return rawText;
+      }
+
+      const paragraphs = rawText.split(/\n{2,}/);
+      return paragraphs.map(p => {
+        const trimmed = p.trim();
+        if (/^Unit\s+[A-Za-z0-9]+/i.test(trimmed) || /^Lesson\s+\d+/i.test(trimmed)) {
+          return `<h2>${trimmed.replace(/\n/g, '<br>')}</h2>`;
+        }
+        if (/^[A-E]\.\s+/i.test(trimmed) || /^Warm up activity/i.test(trimmed)) {
+          return `<h3>${trimmed.replace(/\n/g, '<br>')}</h3>`;
+        }
+        if (/^'.*?'\s+by\s+/i.test(trimmed)) {
+          return `<h3>${trimmed}</h3>`;
+        }
+        return `<p>${trimmed.replace(/\n/g, '<br>')}</p>`;
+      }).join('');
+    }
+
+    // Convert Doc HTML back to clean text and lines for book_data.js
+    function docHtmlToText(sheetElement) {
+      return sheetElement.innerText || '';
+    }
+
+    // 5. PAGE SELECTION & MANAGEMENT
     function renderPageList(filterQuery = '') {
       const container = document.getElementById('pageListContainer');
       if (!container || !adminState.bookData || !adminState.bookData.pages) return;
@@ -1178,11 +1656,29 @@
       const pageObj = adminState.bookData ? adminState.bookData.pages[pageNum - 1] : null;
       if (!pageObj) return;
 
-      document.getElementById('currentEditingPageTitle').textContent = `Editing Page ${pageNum}`;
-      document.getElementById('currentEditingPageMeta').textContent = `${pageObj.unit_title || 'English For Today'} • ${pageObj.lesson_title || `Page ${pageNum}`}`;
+      const headerTitle = `${pageObj.unit_title || 'Unit'} • ${pageObj.lesson_title || `Page ${pageNum}`}`;
+      document.getElementById('docPageHeaderTitle').value = headerTitle;
+      document.getElementById('sidebarPageBadge').textContent = `Page ${pageNum} of 295`;
       document.getElementById('editUnitTitle').value = pageObj.unit_title || '';
       document.getElementById('editLessonTitle').value = pageObj.lesson_title || '';
-      document.getElementById('editPageText').value = pageObj.text || '';
+      document.getElementById('editPrintedPage').value = pageObj.printed_page_number || pageNum;
+      document.getElementById('editTargetVocab').value = (pageObj.target_vocab || []).join(', ');
+
+      const sheet = document.getElementById('docPaperSheet');
+      if (sheet) {
+        sheet.innerHTML = textToDocHtml(pageObj.text || '');
+        handleDocInput();
+      }
+
+      adminState.unsavedChanges = false;
+      document.getElementById('docStatusText').textContent = `All changes saved in local cache`;
+    }
+
+    function syncMetaFromHeader() {
+      const val = document.getElementById('docPageHeaderTitle').value;
+      const parts = val.split('•');
+      if (parts[0]) document.getElementById('editUnitTitle').value = parts[0].trim();
+      if (parts[1]) document.getElementById('editLessonTitle').value = parts[1].trim();
     }
 
     function saveCurrentPageText() {
@@ -1192,19 +1688,29 @@
 
       const newUnit = document.getElementById('editUnitTitle').value.trim();
       const newLesson = document.getElementById('editLessonTitle').value.trim();
-      const newText = document.getElementById('editPageText').value;
+      const newPrinted = parseInt(document.getElementById('editPrintedPage').value, 10) || pageNum;
+      const rawVocab = document.getElementById('editTargetVocab').value.split(',').map(v => v.trim()).filter(Boolean);
+
+      const sheet = document.getElementById('docPaperSheet');
+      const newText = docHtmlToText(sheet);
 
       pageObj.unit_title = newUnit;
       pageObj.lesson_title = newLesson;
+      pageObj.printed_page_number = newPrinted;
+      pageObj.target_vocab = rawVocab;
       pageObj.text = newText;
       pageObj.lines = newText.split('\n').map(l => l.trim()).filter(Boolean);
 
-      // Save to localStorage for instant client test
+      // Save to localStorage for instant local preview
       localStorage.setItem('e4t_custom_book_data', JSON.stringify(adminState.bookData));
-      showToast(`Page ${pageNum} saved successfully!`, 'success');
+      
+      adminState.unsavedChanges = false;
+      document.getElementById('docStatusText').textContent = `All changes saved in local cache`;
+      showToast(`Page ${pageNum} saved in Google Doc editor!`, 'success');
+      renderPageList(document.getElementById('pageSearchInput')?.value || '');
     }
 
-    // 5. MCQ STUDIO
+    // 6. MCQ STUDIO
     function renderMCQCards(filterQuery = '') {
       const container = document.getElementById('mcqCardsContainer');
       if (!container || !adminState.vocabList) return;
@@ -1368,7 +1874,7 @@
       }
     }
 
-    // 6. GITHUB REST API LIVE PUBLISHING
+    // 7. GITHUB REST API LIVE PUBLISHING
     async function publishLiveChanges() {
       const btn = document.getElementById('publishGithubBtn');
       if (btn) {
@@ -1382,10 +1888,7 @@
         const bookDataContent = 'window.BOOK_DATA = ' + JSON.stringify(adminState.bookData, null, 2) + ';';
         const vocabDataContent = 'window.VOCAB_DATA = ' + JSON.stringify(adminState.vocabList, null, 2) + ';';
 
-        // 1. Commit book_data.js
         await commitFileToGitHub('book_data.js', bookDataContent, 'Admin update: save book_data.js via Sakin Admin Console');
-        
-        // 2. Commit vocab_data.js
         await commitFileToGitHub('vocab_data.js', vocabDataContent, 'Admin update: save vocab_data.js via Sakin Admin Console');
 
         showToast('🚀 Successfully published live to GitHub & Vercel! Your site is updating.', 'success');
@@ -1440,7 +1943,7 @@
       return putRes.json();
     }
 
-    // 7. BACKUP DOWNLOAD & RESET
+    // 8. BACKUP DOWNLOAD & RESET
     function downloadDataFiles() {
       const bookBlob = new Blob(['window.BOOK_DATA = ' + JSON.stringify(adminState.bookData, null, 2) + ';'], { type: 'application/javascript' });
       const a1 = document.createElement('a');
@@ -1470,7 +1973,7 @@
       }
     }
 
-    // 8. TOAST SYSTEM
+    // 9. TOAST SYSTEM
     function showToast(msg, type = 'info') {
       const toast = document.getElementById('adminToast');
       const toastMsg = document.getElementById('toastMsg');
