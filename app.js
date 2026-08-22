@@ -2025,13 +2025,19 @@ function renderBilingualDictionaryData(word, entry, localData, banglaText) {
     `;
   }
 
-  // 3. GRAMMATICAL MORPHOLOGY & FORMS SECTION (Only for genuine content words)
+  // 3. GRAMMATICAL MORPHOLOGY & FORMS SECTION (Strict POS Separation)
   if (!isProper && !isFunc) {
     const posFamily = GrammarEngine.derivePOSFamily(word, detectedPos);
-    const hasExplicitVerbForms = localData && localData.verbForms;
-    const isVerb = detectedPos.toLowerCase().includes('verb') || hasExplicitVerbForms;
-    const hasExplicitDegrees = localData && localData.degrees;
-    const isAdj = detectedPos.toLowerCase().includes('adj') || hasExplicitDegrees;
+    
+    // Strict POS check:
+    // Only genuine Verbs get Verb Tenses.
+    // Only genuine Adjectives get Degrees of Comparison.
+    // Nouns, Adverbs, and others NEVER get Verb Tenses or Degrees!
+    const posLower = (detectedPos || '').toLowerCase();
+    const localPosLower = ((localData && localData.partOfSpeech) || '').toLowerCase();
+    
+    const isVerb = (posLower.startsWith('verb') || localPosLower.startsWith('verb') || localPosLower.includes('(ক্রিয়া)') || localPosLower.includes('(ক্রিয়া)')) && !posLower.includes('noun') && !localPosLower.includes('noun') && !posLower.includes('adj') && !localPosLower.includes('adj');
+    const isAdj = (posLower.startsWith('adj') || localPosLower.startsWith('adj') || localPosLower.includes('(বিশেষণ)')) && !posLower.includes('noun') && !localPosLower.includes('noun') && !posLower.includes('verb') && !localPosLower.includes('verb');
 
     if (posFamily) {
       html += `
