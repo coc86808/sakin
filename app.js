@@ -2550,6 +2550,8 @@ function highlightActiveTOC(pageNum) {
 }
 
 function renderBookmarks() {
+  const countBadge = document.getElementById('bookmarkCount');
+  if (countBadge) countBadge.textContent = state.bookmarks.length;
   if (!elements.bookmarksList) return;
   if (state.bookmarks.length === 0) {
     elements.bookmarksList.innerHTML = '<div class="empty-msg"><i class="fa-regular fa-bookmark" style="font-size: 2rem; color: var(--accent); margin-bottom: 0.5rem; display: block;"></i>No bookmarks saved yet.<br>Click the bookmark icon to save this page!</div>';
@@ -2758,6 +2760,8 @@ function savePersonalNote() {
 }
 
 function renderNotes() {
+  const notesBadge = document.getElementById('notesCount');
+  if (notesBadge) notesBadge.textContent = state.notes.length;
   if (!elements.notesList) return;
   if (state.notes.length === 0) {
     elements.notesList.innerHTML = '<div class="empty-msg"><i class="fa-solid fa-highlighter" style="font-size: 2rem; color: var(--accent); margin-bottom: 0.5rem; display: block;"></i>Highlight any text on the page to save quotes, study colors, or attach personal study notes!</div>';
@@ -4189,6 +4193,10 @@ const VocabHubEngine = {
       }
     });
 
+    if (lessonId !== 'all' && combined.length > 5) {
+      return combined.slice(0, 5);
+    }
+
     return combined;
   },
 
@@ -4428,7 +4436,7 @@ const VocabHubEngine = {
       });
     }
 
-    this.state.quizQuestions = questions;
+    this.state.quizQuestions = questions.slice(0, 5);
     this.state.quizIndex = 0;
     this.state.quizScore = 0;
 

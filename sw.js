@@ -1,5 +1,5 @@
 // English For Today - High-Performance Offline Service Worker
-const CACHE_NAME = 'e4t-offline-v1';
+const CACHE_NAME = 'e4t-offline-v98000';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const PRECACHE_ASSETS = [
   './book_data.js',
   './vocab_data.js',
   './bangla_dict_data.js',
+  './master_mcq_database.js',
   './manifest.json'
 ];
 
