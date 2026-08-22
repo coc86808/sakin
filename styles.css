@@ -2812,61 +2812,64 @@ mark.user-highlight-pink   { background: rgba(251, 207, 232, 0.4); color: inheri
   transform: translateY(-1px);
 }
 
-/* 2. Target Word Glow Focus inside Book Reading Card */
+/* 2. Target Word Focus inside Book Reading Card (Clean & Non-Intrusive) */
 mark.target-word-glow-focus {
-  background: #facc15 !important;
-  color: #000000 !important;
-  font-weight: 800 !important;
-  font-size: 1.12em !important;
-  padding: 3px 10px !important;
-  border-radius: 6px !important;
-  border: 2px solid #ffffff !important;
-  box-shadow: 0 0 25px #f59e0b, 0 0 50px rgba(245, 158, 11, 0.95), 0 0 80px rgba(250, 204, 21, 0.7) !important;
-  display: inline-block;
-  animation: pulseGlow 1.2s ease-in-out infinite alternate !important;
+  background: rgba(250, 204, 21, 0.28) !important;
+  color: #fef08a !important;
+  border-bottom: 2px solid #facc15 !important;
+  font-weight: 700 !important;
+  font-size: 1em !important;
+  padding: 1px 4px !important;
+  border-radius: 4px !important;
+  border: none !important;
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.35) !important;
+  display: inline !important;
   position: relative;
-  z-index: 50;
-  vertical-align: middle;
+  z-index: 10;
+  animation: subtlePulse 2s ease-in-out infinite alternate !important;
+  vertical-align: baseline !important;
 }
 
 mark.target-word-glow-focus::before {
-  content: "📍 Focused Target Word";
+  content: "📍 Target Word";
   position: absolute;
-  bottom: 135%;
+  bottom: 125%;
   left: 50%;
   transform: translateX(-50%);
-  background: #090d16;
+  background: #0f172a;
   color: #facc15;
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 3px 10px;
-  border-radius: 6px;
-  border: 1.5px solid #facc15;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(250, 204, 21, 0.6);
   white-space: nowrap;
   pointer-events: none;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.75);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  opacity: 0.95;
+  line-height: 1.2;
 }
 
 mark.target-word-glow-focus::after {
   content: "";
   position: absolute;
-  bottom: 110%;
+  bottom: 108%;
   left: 50%;
   transform: translateX(-50%);
-  border-width: 6px 6px 0 6px;
+  border-width: 4px 4px 0 4px;
   border-style: solid;
   border-color: #facc15 transparent transparent transparent;
   pointer-events: none;
 }
 
-@keyframes pulseGlow {
+@keyframes subtlePulse {
   0% {
-    transform: scale(1.0);
-    box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+    background: rgba(250, 204, 21, 0.22);
+    box-shadow: 0 0 4px rgba(250, 204, 21, 0.2);
   }
   100% {
-    transform: scale(1.08);
-    box-shadow: 0 0 28px rgba(245, 158, 11, 1.0);
+    background: rgba(250, 204, 21, 0.38);
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.4);
   }
 }
 
