@@ -447,6 +447,11 @@ function goToPage(pageNum, triggerFlip = true, updateHistory = true) {
   }
   
   applyUserHighlights(validPage);
+  if (state.focusedTargetWord) {
+    const w = state.focusedTargetWord;
+    setTimeout(() => focusWordInRenderedPage(w), 80);
+    setTimeout(() => focusWordInRenderedPage(w), 250);
+  }
   updateActiveTOC(validPage);
   
   if (triggerFlip) {
@@ -917,7 +922,13 @@ function focusWordInRenderedPage(targetWord) {
   }
 }
 
-function jumpToWordInBook(targetPageNum, targetWord) {
+function jumpToWordInBook(targetPageNum, targetWord, openInNewTab = true) {
+  if (openInNewTab) {
+    const url = `?page=${targetPageNum}&focus_word=${encodeURIComponent(targetWord)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
   if (elements.vocabStudioModal) elements.vocabStudioModal.classList.remove('open');
   if (elements.dictionaryModal) elements.dictionaryModal.classList.remove('open');
   

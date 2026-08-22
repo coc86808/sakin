@@ -2812,16 +2812,17 @@ mark.user-highlight-pink   { background: rgba(251, 207, 232, 0.4); color: inheri
   transform: translateY(-1px);
 }
 
-/* 2. Target Word Focus inside Book Reading Card (Normal Size & Clean In-Flow Highlight) */
-mark.target-word-glow-focus {
-  background: rgba(250, 204, 21, 0.32) !important;
+/* 2. Target Word Focus inside Book Reading Card (Strictly Normal Font Size & In-Flow Highlight) */
+mark.target-word-glow-focus,
+#focusedWordMark {
+  background: rgba(250, 204, 21, 0.35) !important;
   color: inherit !important;
   border-bottom: 2px solid #facc15 !important;
   border-radius: 3px !important;
   border-top: none !important;
   border-left: none !important;
   border-right: none !important;
-  padding: 0 3px !important;
+  padding: 0 2px !important;
   margin: 0 !important;
   font-size: inherit !important;
   font-weight: 700 !important;
@@ -2834,7 +2835,9 @@ mark.target-word-glow-focus {
 }
 
 mark.target-word-glow-focus::before,
-mark.target-word-glow-focus::after {
+mark.target-word-glow-focus::after,
+#focusedWordMark::before,
+#focusedWordMark::after {
   display: none !important;
   content: none !important;
 }
