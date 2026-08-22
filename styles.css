@@ -3146,13 +3146,47 @@ mark.target-word-glow-focus::after,
   animation: popIn 0.2s ease;
 }
 
+.feedback-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
 .feedback-status-banner {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 800;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+}
+
+.top-next-word-btn {
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  font-size: 0.92rem;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.18s ease;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  flex-shrink: 0;
+}
+
+.top-next-word-btn:hover {
+  transform: translateY(-1px);
+  background: var(--accent-hover);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
 }
 
 .feedback-status-banner.correct {
@@ -3161,6 +3195,10 @@ mark.target-word-glow-focus::after,
 
 .feedback-status-banner.incorrect {
   color: #ef4444;
+}
+
+.feedback-status-banner.warning {
+  color: #f59e0b;
 }
 
 .feedback-def-row {

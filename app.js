@@ -533,6 +533,12 @@ function initApp() {
       openVocabQuizModal(uVal, lVal);
       if (urlParams.get('auto_start') === '1') {
         startExam();
+        if (urlParams.get('auto_answer') === '1') {
+          setTimeout(() => {
+            const pills = document.querySelectorAll('.vocab-option-pill');
+            if (pills && pills[0]) pills[0].click();
+          }, 150);
+        }
       } else if (urlParams.get('analytics_preview') === '1') {
         startExam();
         state.examHistory = [
@@ -1571,20 +1577,32 @@ function handleExamOptionSelection(pill, wordObj, isNotSure = false) {
     detailsContainer.innerHTML = feedbackHtml;
   }
 
-  if (feedbackCard) feedbackCard.style.display = 'block';
+  if (feedbackCard) {
+    feedbackCard.style.display = 'block';
+    setTimeout(() => {
+      feedbackCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 40);
+  }
 
-  if (nextBtn) {
+  const nextButtons = [
+    document.getElementById('vNextWordBtn'),
+    document.getElementById('vNextWordBtnTop')
+  ].filter(Boolean);
+
+  nextButtons.forEach(btn => {
     if (state.examIndex + 1 >= state.examQuestions.length) {
-      nextBtn.innerHTML = `🏆 Finish Exam & View Analytics (ফলাফল দেখুন) <i class="fa-solid fa-award"></i>`;
+      btn.innerHTML = `🏆 Finish Exam & View Analytics (ফলাফল দেখুন) <i class="fa-solid fa-award"></i>`;
+      btn.className = btn.classList.contains('top-next-word-btn') ? 'next-word-btn top-next-word-btn finish-btn' : 'next-word-btn finish-btn';
     } else {
-      nextBtn.innerHTML = `Next Question (পরবর্তী প্রশ্ন) <i class="fa-solid fa-arrow-right"></i>`;
+      btn.innerHTML = `Next Question (পরবর্তী প্রশ্ন) <i class="fa-solid fa-arrow-right"></i>`;
+      btn.className = btn.classList.contains('top-next-word-btn') ? 'next-word-btn top-next-word-btn' : 'next-word-btn';
     }
 
-    nextBtn.onclick = () => {
+    btn.onclick = () => {
       state.examIndex += 1;
       renderExamQuestion();
     };
-  }
+  });
 }
 
 function showExamAnalytics() {

@@ -530,8 +530,13 @@
 
             <!-- Feedback & Context Card (Revealed upon selecting an option) -->
             <div class="vocab-feedback-card" id="vocabFeedbackCard" style="display: none;">
-              <div class="feedback-status-banner" id="vFeedbackBanner">
-                <i class="fa-solid fa-circle-check"></i> <strong>Correct!</strong>
+              <div class="feedback-header-bar">
+                <div class="feedback-status-banner" id="vFeedbackBanner">
+                  <i class="fa-solid fa-circle-check"></i> <strong>Correct!</strong>
+                </div>
+                <button class="next-word-btn top-next-word-btn" id="vNextWordBtnTop" title="Proceed immediately to next question without scrolling">
+                  Next Question (পরবর্তী প্রশ্ন) <i class="fa-solid fa-arrow-right"></i>
+                </button>
               </div>
               <div class="feedback-details">
                 <!-- Details injected via app.js -->
@@ -539,7 +544,7 @@
 
               <div class="feedback-footer">
                 <button class="next-word-btn" id="vNextWordBtn">
-                  Next Question <i class="fa-solid fa-arrow-right"></i>
+                  Next Question (পরবর্তী প্রশ্ন) <i class="fa-solid fa-arrow-right"></i>
                 </button>
               </div>
             </div>
@@ -708,9 +713,9 @@
   </div>
 
   <!-- JavaScript Data & Logic -->
-  <script src="book_data.js?v=60000"></script>
-  <script src="vocab_data.js?v=60000"></script>
-  <script src="bangla_dict_data.js?v=60000"></script>
-  <script src="app.js?v=60000"></script>
+  <script src="book_data.js?v=70000"></script>
+  <script src="vocab_data.js?v=70000"></script>
+  <script src="bangla_dict_data.js?v=70000"></script>
+  <script src="app.js?v=70000"></script>
 </body>
 </html>
