@@ -1,0 +1,24 @@
+{
+  "name": "sakin",
+  "version": "1.0.0",
+  "description": "An interactive, responsive digital e-book platform designed for NCTB English For Today (Classes XI-XII & Alim), featuring Magoosh-style vocabulary learning, bilingual Bengali dictionary, precision textbook word marking, and multiple reading view modes.",
+  "main": "app.js",
+  "scripts": {
+    "dev": "npx http-server -p 3000",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coc86808/sakin.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/coc86808/sakin/issues"
+  },
+  "homepage": "https://github.com/coc86808/sakin#readme",
+  "dependencies": {
+    "@vercel/speed-insights": "^2.0.0"
+  }
+}
