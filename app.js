@@ -485,11 +485,15 @@ function initApp() {
   initMobileSidebar();
   loadSavedPreferences();
   
-  if (window.BOOK_DATA || window.BOOK_CONTENT_DATA) {
-    state.bookData = window.BOOK_DATA || window.BOOK_CONTENT_DATA;
-    state.totalPages = state.bookData.total_pages || (state.bookData.pages ? state.bookData.pages.length : 295);
-    if (elements.pageSlider) elements.pageSlider.max = state.totalPages;
+  const customBook = safeStorage.get('e4t_custom_book_data');
+  if (customBook) {
+    try { state.bookData = JSON.parse(customBook); } catch (e) {}
   }
+  if (!state.bookData && (window.BOOK_DATA || window.BOOK_CONTENT_DATA)) {
+    state.bookData = window.BOOK_DATA || window.BOOK_CONTENT_DATA;
+  }
+  state.totalPages = state.bookData ? (state.bookData.total_pages || (state.bookData.pages ? state.bookData.pages.length : 295)) : 295;
+  if (elements.pageSlider) elements.pageSlider.max = state.totalPages;
   
   initVocabQuiz();
   renderTOC();
@@ -954,7 +958,13 @@ function jumpToWordInBook(targetPageNum, targetWord, openInNewTab = true) {
 let examTimerInterval = null;
 
 function initVocabQuiz() {
-  state.vocabList = window.VOCAB_DATA || [];
+  const customVocab = safeStorage.get('e4t_custom_vocab_data');
+  if (customVocab) {
+    try { state.vocabList = JSON.parse(customVocab); } catch (e) {}
+  }
+  if (!state.vocabList || state.vocabList.length === 0) {
+    state.vocabList = window.VOCAB_DATA || [];
+  }
   state.activeVocabList = [...state.vocabList];
   state.examHistory = [];
   state.examQuestions = [];
