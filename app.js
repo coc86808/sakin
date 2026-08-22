@@ -1743,8 +1743,62 @@ const GrammarEngine = {
     return s.charAt(0).toUpperCase() + s.slice(1);
   },
 
+  isProperNounOrName(word) {
+    if (!word) return false;
+    const w = word.toLowerCase().trim();
+    
+    // Months of the year
+    const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+    // Days of the week
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    // Place / Country / City / Geographical names
+    const places = [
+      'bangladesh', 'dhaka', 'paris', 'london', 'bombay', 'mumbai', 'asia', 'europe', 'africa', 'america', 'gaza', 
+      'sajek', 'kuakata', 'sundarbans', 'chittagong', 'sylhet', 'everest', 'himalaya', 'himalayas', 'carolina', 
+      'japan', 'pakistan', 'india', 'thailand', 'bangkok', 'vietnam', 'rome', 'greece', 'athens', 'england', 'britain'
+    ];
+    // People / Historical / Mythological Names
+    const names = [
+      'novera', 'zainul', 'rabindranath', 'tagore', 'byron', 'totto-chan', 'tottochan', 'jerry', 'kobayashi', 
+      'mandela', 'nelson', 'gazi', 'hercules', 'icarus', 'daedalus', 'keats', 'dickinson', 'shilpi', 'rashid', 
+      'brojen', 'wasfia', 'nazreen', 'shamsur', 'jasimuddin', 'rokeya', 'frederick', 'douglass', 'shakespeare',
+      'john', 'emily', 'plato', 'aristotle', 'socrates', 'azam', 'khan', 'pat'
+    ];
+
+    if (months.includes(w) || days.includes(w) || places.includes(w) || names.includes(w)) {
+      return true;
+    }
+
+    // Check if entry in dictionary is explicitly marked as proper noun
+    if (window.BANGLA_DICT_DATA && window.BANGLA_DICT_DATA[w] && window.BANGLA_DICT_DATA[w].isProperNoun) {
+      return true;
+    }
+
+    return false;
+  },
+
+  isFunctionWord(word) {
+    if (!word) return false;
+    const w = word.toLowerCase().trim();
+    const functionWords = [
+      'the', 'a', 'an', 'in', 'on', 'at', 'by', 'for', 'with', 'about', 'to', 'from', 'into', 'through', 'over', 'under',
+      'and', 'but', 'or', 'so', 'if', 'because', 'as', 'than', 'though', 'although', 'while',
+      'he', 'she', 'it', 'they', 'we', 'you', 'i', 'me', 'him', 'her', 'them', 'us', 'my', 'his', 'their', 'our', 'your', 'its',
+      'this', 'that', 'these', 'those', 'who', 'whom', 'whose', 'which', 'what',
+      'is', 'are', 'was', 'were', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'done',
+      'will', 'would', 'shall', 'should', 'can', 'could', 'may', 'might', 'must'
+    ];
+    return functionWords.includes(w) || /^\d+$/.test(w);
+  },
+
   derivePOSFamily(word, posHint) {
     const w = word.toLowerCase().trim();
+
+    // Do NOT generate POS family for Proper Nouns or Function Words
+    if (this.isProperNounOrName(w) || this.isFunctionWord(w)) {
+      return null;
+    }
+
     if (window.BANGLA_DICT_DATA && window.BANGLA_DICT_DATA[w] && window.BANGLA_DICT_DATA[w].noun) {
       return {
         noun: window.BANGLA_DICT_DATA[w].noun,
@@ -1791,17 +1845,15 @@ const GrammarEngine = {
       noun = this.capitalize(adjBase + 'ness');
       verb = this.capitalize(adjBase);
     } else {
-      verb = this.capitalize(w);
-      noun = this.capitalize(w.endsWith('e') ? w.slice(0, -1) + 'ation' : w + 'ation');
-      adjective = this.capitalize(w.endsWith('e') ? w + 'd' : w + 'ed');
-      adverb = this.capitalize(w + 'ly');
+      // Only generate if word is verified content word
+      return null;
     }
 
     return {
-      noun: noun || this.capitalize(w + ' (Noun)'),
-      verb: verb || this.capitalize(w + ' (Verb)'),
-      adjective: adjective || this.capitalize(w + ' (Adj)'),
-      adverb: adverb || this.capitalize(w + ' (Adv)')
+      noun: noun,
+      verb: verb,
+      adjective: adjective,
+      adverb: adverb
     };
   },
 
@@ -2020,160 +2072,217 @@ function renderBilingualDictionaryData(word, entry, localData, banglaText) {
   }
 
   // 2. English Definitions & Part of Speech
-  let detectedPos = 'noun';
-  if (entry && entry.meanings && entry.meanings.length > 0) {
-    detectedPos = entry.meanings[0].partOfSpeech || 'noun';
-    entry.meanings.forEach(m => {
-      html += `<div class="dict-meaning-item">`;
-      html += `<span class="dict-part-of-speech">${m.partOfSpeech}</span>`;
-      if (m.definitions) {
-        m.definitions.slice(0, 2).forEach((d, idx) => {
-          html += `<div class="dict-def-text"><strong>${idx + 1}.</strong> ${d.definition}</div>`;
-          if (d.example) {
-            html += `<div class="dict-example-text">"${d.example}"</div>`;
-          }
-        });
-      }
-      html += `</div>`;
-    });
-  } else if (localData && localData.definition) {
-    detectedPos = (localData.partOfSpeech || '').toLowerCase().includes('adj') ? 'adjective' : ((localData.partOfSpeech || '').toLowerCase().includes('verb') ? 'verb' : 'noun');
+  const isProper = GrammarEngine.isProperNounOrName(word);
+  const isFunc = GrammarEngine.isFunctionWord(word);
+
+  let detectedPos = isProper ? 'Proper Noun (সংজ্ঞাবাচক বিশেষ্য / নাম)' : (isFunc ? 'Function Word / Grammar' : 'noun');
+  
+  if (!isProper && !isFunc) {
+    if (entry && entry.meanings && entry.meanings.length > 0) {
+      detectedPos = entry.meanings[0].partOfSpeech || 'noun';
+      entry.meanings.forEach(m => {
+        html += `<div class="dict-meaning-item">`;
+        html += `<span class="dict-part-of-speech">${m.partOfSpeech}</span>`;
+        if (m.definitions) {
+          m.definitions.slice(0, 2).forEach((d, idx) => {
+            html += `<div class="dict-def-text"><strong>${idx + 1}.</strong> ${d.definition}</div>`;
+            if (d.example) {
+              html += `<div class="dict-example-text">"${d.example}"</div>`;
+            }
+          });
+        }
+        html += `</div>`;
+      });
+    } else if (localData && localData.definition) {
+      detectedPos = localData.partOfSpeech || 'Vocabulary';
+      html += `
+        <div class="dict-meaning-item">
+          <span class="dict-part-of-speech">${detectedPos}</span>
+          <div class="dict-def-text">${localData.definition}</div>
+        </div>
+      `;
+    }
+  } else if (isProper) {
     html += `
       <div class="dict-meaning-item">
-        <span class="dict-part-of-speech">${localData.partOfSpeech || 'Vocabulary'}</span>
-        <div class="dict-def-text">${localData.definition}</div>
+        <span class="dict-part-of-speech">Proper Noun (নির্দিষ্ট নাম)</span>
+        <div class="dict-def-text">A specific proper name of a person, month, place, or entity in NCTB English For Today.</div>
       </div>
     `;
   }
 
-  // 3. COMPLETE GRAMMATICAL MORPHOLOGY & FORMS SECTION
-  const posFamily = GrammarEngine.derivePOSFamily(word, detectedPos);
-  const verbForms = GrammarEngine.deriveVerbForms(word, posFamily.verb);
-  const degrees = GrammarEngine.deriveDegrees(word, posFamily.adjective);
+  // 3. GRAMMATICAL MORPHOLOGY & FORMS SECTION (Only for genuine content words)
+  if (!isProper && !isFunc) {
+    const posFamily = GrammarEngine.derivePOSFamily(word, detectedPos);
+    const hasExplicitVerbForms = localData && localData.verbForms;
+    const isVerb = detectedPos.toLowerCase().includes('verb') || hasExplicitVerbForms;
+    const hasExplicitDegrees = localData && localData.degrees;
+    const isAdj = detectedPos.toLowerCase().includes('adj') || hasExplicitDegrees;
 
-  html += `
-    <div class="dict-grammar-card">
-      <div class="grammar-card-header"><i class="fa-solid fa-shapes"></i> পদ পরিবর্তন ও ব্যাকরণগত রূপভেদ (Grammatical Forms)</div>
-      
-      <!-- 4 Parts of Speech Family Grid -->
-      <div class="pos-family-grid">
-        <div class="pos-family-item">
-          <span class="pos-family-tag">Noun (বিশেষ্য)</span>
-          <span class="pos-family-val">${posFamily.noun || '—'}</span>
-        </div>
-        <div class="pos-family-item">
-          <span class="pos-family-tag">Verb (ক্রিয়া)</span>
-          <span class="pos-family-val">${posFamily.verb || '—'}</span>
-        </div>
-        <div class="pos-family-item">
-          <span class="pos-family-tag">Adjective (বিশেষণ)</span>
-          <span class="pos-family-val">${posFamily.adjective || '—'}</span>
-        </div>
-        <div class="pos-family-item">
-          <span class="pos-family-tag">Adverb (ভাববিশেষণ)</span>
-          <span class="pos-family-val">${posFamily.adverb || '—'}</span>
-        </div>
-      </div>
+    if (posFamily) {
+      html += `
+        <div class="dict-grammar-card">
+          <div class="grammar-card-header"><i class="fa-solid fa-shapes"></i> পদ পরিবর্তন ও ব্যাকরণগত রূপভেদ (Grammatical Forms)</div>
+          
+          <!-- 4 Parts of Speech Family Grid -->
+          <div class="pos-family-grid">
+            <div class="pos-family-item">
+              <span class="pos-family-tag">Noun (বিশেষ্য)</span>
+              <span class="pos-family-val">${posFamily.noun || '—'}</span>
+            </div>
+            <div class="pos-family-item">
+              <span class="pos-family-tag">Verb (ক্রিয়া)</span>
+              <span class="pos-family-val">${posFamily.verb || '—'}</span>
+            </div>
+            <div class="pos-family-item">
+              <span class="pos-family-tag">Adjective (বিশেষণ)</span>
+              <span class="pos-family-val">${posFamily.adjective || '—'}</span>
+            </div>
+            <div class="pos-family-item">
+              <span class="pos-family-tag">Adverb (ভাববিশেষণ)</span>
+              <span class="pos-family-val">${posFamily.adverb || '—'}</span>
+            </div>
+          </div>
+      `;
 
-      <!-- Verb Tense Forms (Present, Past, Past Participle, Continuous, Future) -->
-      <div class="verb-forms-container">
-        <div class="verb-forms-title"><i class="fa-solid fa-clock"></i> ক্রিয়ার কাল ও রূপ (Verb Tenses: V1, V2, V3, V4 & Future)</div>
-        <div class="verb-forms-row">
-          <div class="verb-form-cell">
-            <span class="verb-form-lbl">Present (V1)</span>
-            <span class="verb-form-text">${verbForms.v1_present}</span>
+      // Verb Tense Forms (Only if genuine verb)
+      if (isVerb) {
+        const verbForms = GrammarEngine.deriveVerbForms(word, posFamily.verb);
+        html += `
+          <div class="verb-forms-container">
+            <div class="verb-forms-title"><i class="fa-solid fa-clock"></i> ক্রিয়ার কাল ও রূপ (Verb Tenses: V1, V2, V3, V4 & Future)</div>
+            <div class="verb-forms-row">
+              <div class="verb-form-cell">
+                <span class="verb-form-lbl">Present (V1)</span>
+                <span class="verb-form-text">${verbForms.v1_present}</span>
+              </div>
+              <div class="verb-form-cell">
+                <span class="verb-form-lbl">Past (V2)</span>
+                <span class="verb-form-text">${verbForms.v2_past}</span>
+              </div>
+              <div class="verb-form-cell">
+                <span class="verb-form-lbl">Past Participle (V3)</span>
+                <span class="verb-form-text">${verbForms.v3_past_participle}</span>
+              </div>
+              <div class="verb-form-cell">
+                <span class="verb-form-lbl">Continuous (V4)</span>
+                <span class="verb-form-text">${verbForms.v4_continuous}</span>
+              </div>
+              <div class="verb-form-cell">
+                <span class="verb-form-lbl">Future</span>
+                <span class="verb-form-text">${verbForms.future}</span>
+              </div>
+            </div>
           </div>
-          <div class="verb-form-cell">
-            <span class="verb-form-lbl">Past (V2)</span>
-            <span class="verb-form-text">${verbForms.v2_past}</span>
-          </div>
-          <div class="verb-form-cell">
-            <span class="verb-form-lbl">Past Participle (V3)</span>
-            <span class="verb-form-text">${verbForms.v3_past_participle}</span>
-          </div>
-          <div class="verb-form-cell">
-            <span class="verb-form-lbl">Continuous (V4)</span>
-            <span class="verb-form-text">${verbForms.v4_continuous}</span>
-          </div>
-          <div class="verb-form-cell">
-            <span class="verb-form-lbl">Future</span>
-            <span class="verb-form-text">${verbForms.future}</span>
-          </div>
-        </div>
-      </div>
+        `;
+      }
 
-      <!-- Degrees of Comparison for Adjectives -->
-      <div class="degrees-container">
-        <div class="degrees-title"><i class="fa-solid fa-chart-simple"></i> বিশেষণের তারতম্য (Degrees of Comparison)</div>
-        <div class="degrees-row">
-          <div class="degree-cell">
-            <span class="degree-lbl">Positive Degree</span>
-            <span class="degree-text">${degrees.positive}</span>
+      // Degrees of Comparison (Only if genuine adjective)
+      if (isAdj) {
+        const degrees = GrammarEngine.deriveDegrees(word, posFamily.adjective);
+        html += `
+          <div class="degrees-container">
+            <div class="degrees-title"><i class="fa-solid fa-chart-simple"></i> বিশেষণের তারতম্য (Degrees of Comparison)</div>
+            <div class="degrees-row">
+              <div class="degree-cell">
+                <span class="degree-lbl">Positive Degree</span>
+                <span class="degree-text">${degrees.positive}</span>
+              </div>
+              <div class="degree-cell">
+                <span class="degree-lbl">Comparative Degree</span>
+                <span class="degree-text">${degrees.comparative}</span>
+              </div>
+              <div class="degree-cell">
+                <span class="degree-lbl">Superlative Degree</span>
+                <span class="degree-text">${degrees.superlative}</span>
+              </div>
+            </div>
           </div>
-          <div class="degree-cell">
-            <span class="degree-lbl">Comparative Degree</span>
-            <span class="degree-text">${degrees.comparative}</span>
-          </div>
-          <div class="degree-cell">
-            <span class="degree-lbl">Superlative Degree</span>
-            <span class="degree-text">${degrees.superlative}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+        `;
+      }
 
-  // 4. Synonyms & Antonyms Side-by-Side Cards
-  const rawSyn = (localData && localData.synonyms) ? localData.synonyms : 'similar term, related word, equivalent';
-  const rawAnt = (localData && localData.antonyms) ? localData.antonyms : 'opposite term, contrary, reverse';
-
-  const synList = rawSyn.split(',').map(s => s.trim()).filter(Boolean);
-  const antList = rawAnt.split(',').map(s => s.trim()).filter(Boolean);
-
-  html += `
-    <div class="dict-syn-ant-container">
-      <div class="synonyms-card">
-        <div class="syn-ant-title syn"><i class="fa-solid fa-arrow-right-arrow-left"></i> সমার্থক শব্দ (Synonyms)</div>
-        <div class="syn-ant-pills-wrap">
-          ${synList.map(s => `<span class="syn-pill">${s}</span>`).join('')}
-        </div>
-      </div>
-      <div class="antonyms-card">
-        <div class="syn-ant-title ant"><i class="fa-solid fa-arrows-split-up-and-left"></i> বিপরীতার্থক শব্দ (Antonyms)</div>
-        <div class="syn-ant-pills-wrap">
-          ${antList.map(a => `<span class="ant-pill">${a}</span>`).join('')}
-        </div>
-      </div>
-    </div>
-  `;
-
-  // 5. Rich Use Cases Section
-  html += `<div class="dict-usecases-section">`;
-  html += `<div class="dict-section-title"><i class="fa-solid fa-pen-nib"></i> বাস্তব প্রয়োগ ও ব্যবহারের ক্ষেত্র (Use Cases)</div>`;
-
-  if (localData && localData.textbookUseCase) {
-    html += `
-      <div class="dict-usecase-item textbook">
-        <div class="usecase-tag"><i class="fa-solid fa-book-bookmark" style="color: #f59e0b;"></i> পাঠ্যবইয়ের প্রেক্ষাপট (Textbook Context)</div>
-        <div class="usecase-sentence">"${localData.textbookUseCase}"</div>
-      </div>
-    `;
+      html += `</div>`;
+    }
   }
 
-  if (localData && localData.useCase) {
-    html += `
-      <div class="dict-usecase-item">
-        <div class="usecase-tag"><i class="fa-solid fa-circle-check" style="color: #22c55e;"></i> বাস্তব জীবনে ও পরীক্ষায় ব্যবহারের বাক্য (Practical Use Case)</div>
-        <div class="usecase-sentence">"${localData.useCase}"</div>
-      </div>
-    `;
-  } else if (!localData || !localData.useCase) {
-    html += `
-      <div class="dict-usecase-item">
-        <div class="usecase-tag"><i class="fa-solid fa-circle-check" style="color: #22c55e;"></i> বাক্য প্রয়োগ (Sentence Usage)</div>
-        <div class="usecase-sentence">"The student learned how to use the word '${word}' accurately in English sentences and comprehension exercises."</div>
-      </div>
-    `;
+  // 4. Synonyms & Antonyms (ONLY if genuine real synonyms or antonyms exist in data)
+  let synList = [];
+  let antList = [];
+
+  if (!isProper && !isFunc) {
+    if (localData && localData.synonyms) {
+      synList = localData.synonyms.split(',').map(s => s.trim()).filter(Boolean);
+    } else if (entry && entry.meanings) {
+      entry.meanings.forEach(m => {
+        if (m.synonyms && Array.isArray(m.synonyms)) {
+          m.synonyms.slice(0, 5).forEach(s => {
+            if (!synList.includes(s)) synList.push(s);
+          });
+        }
+      });
+    }
+
+    if (localData && localData.antonyms) {
+      antList = localData.antonyms.split(',').map(s => s.trim()).filter(Boolean);
+    } else if (entry && entry.meanings) {
+      entry.meanings.forEach(m => {
+        if (m.antonyms && Array.isArray(m.antonyms)) {
+          m.antonyms.slice(0, 5).forEach(a => {
+            if (!antList.includes(a)) antList.push(a);
+          });
+        }
+      });
+    }
+  }
+
+  if (synList.length > 0 || antList.length > 0) {
+    html += `<div class="dict-syn-ant-container">`;
+    if (synList.length > 0) {
+      html += `
+        <div class="synonyms-card">
+          <div class="syn-ant-title syn"><i class="fa-solid fa-arrow-right-arrow-left"></i> সমার্থক শব্দ (Synonyms)</div>
+          <div class="syn-ant-pills-wrap">
+            ${synList.map(s => `<span class="syn-pill">${s}</span>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+    if (antList.length > 0) {
+      html += `
+        <div class="antonyms-card">
+          <div class="syn-ant-title ant"><i class="fa-solid fa-arrows-split-up-and-left"></i> বিপরীতার্থক শব্দ (Antonyms)</div>
+          <div class="syn-ant-pills-wrap">
+            ${antList.map(a => `<span class="ant-pill">${a}</span>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+    html += `</div>`;
+  }
+
+  // 5. Use Cases Section
+  if (localData && (localData.textbookUseCase || localData.useCase)) {
+    html += `<div class="dict-usecases-section">`;
+    html += `<div class="dict-section-title"><i class="fa-solid fa-pen-nib"></i> বাস্তব প্রয়োগ ও ব্যবহারের ক্ষেত্র (Use Cases)</div>`;
+
+    if (localData.textbookUseCase) {
+      html += `
+        <div class="dict-usecase-item textbook">
+          <div class="usecase-tag"><i class="fa-solid fa-book-bookmark" style="color: #f59e0b;"></i> পাঠ্যবইয়ের প্রেক্ষাপট (Textbook Context)</div>
+          <div class="usecase-sentence">"${localData.textbookUseCase}"</div>
+        </div>
+      `;
+    }
+
+    if (localData.useCase) {
+      html += `
+        <div class="dict-usecase-item">
+          <div class="usecase-tag"><i class="fa-solid fa-circle-check" style="color: #22c55e;"></i> বাস্তব প্রয়োগের বাক্য (Practical Sentence)</div>
+          <div class="usecase-sentence">"${localData.useCase}"</div>
+        </div>
+      `;
+    }
+    html += `</div>`;
   }
 
   html += `</div>`;
