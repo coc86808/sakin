@@ -341,9 +341,11 @@ function initElements() {
     // Search Engine Modal
     searchModal: document.getElementById('searchModal'),
     searchInput: document.getElementById('searchInput') || document.getElementById('globalSearchInput'),
+    globalSearchInput: document.getElementById('searchInput') || document.getElementById('globalSearchInput'),
     clearSearchBtn: document.getElementById('clearSearchBtn') || document.getElementById('searchClearBtn'),
     closeSearchBtn: document.getElementById('closeSearchBtn') || document.getElementById('searchModalClose'),
     searchResultsContainer: document.getElementById('searchResultsContainer') || document.getElementById('searchResultsList'),
+    searchResultsList: document.getElementById('searchResultsContainer') || document.getElementById('searchResultsList'),
 
     // Dictionary Modal
     dictionaryModal: document.getElementById('dictionaryModal'),
@@ -442,7 +444,9 @@ function goToPage(pageNum, triggerFlip = true, updateHistory = true) {
   }
   
   if (elements.originalPageImg) {
-    elements.originalPageImg.src = pageObj.image || `assets/pages/page_${validPage}.png`;
+    if (state.viewMode === 'image' || state.viewMode === 'split') {
+      elements.originalPageImg.src = pageObj.image || `assets/pages/page_${validPage}.png`;
+    }
   }
   
   applyUserHighlights(validPage);
@@ -672,7 +676,15 @@ function renderTextContent(pageObj, triggerFlipAnim) {
     return;
   }
 
-  const targetVocab = pageObj.target_vocab || [];
+  let targetVocab = pageObj.target_vocab ? [...pageObj.target_vocab] : [];
+  if (targetVocab.length === 0 && state.vocabList && state.vocabList.length > 0) {
+    const pageWords = state.vocabList
+      .filter(v => v.page === pageObj.page_number)
+      .map(v => v.word);
+    if (pageWords.length > 0) {
+      targetVocab.push(...pageWords);
+    }
+  }
 
   // 1. Clean OCR headers, footers & noise
   let clean = cleanOcrText(rawText)
@@ -1805,7 +1817,23 @@ const GrammarEngine = {
       "take": { v1_present: "take / takes", v2_past: "took", v3_past_participle: "taken", v4_continuous: "taking", future: "will take" },
       "give": { v1_present: "give / gives", v2_past: "gave", v3_past_participle: "given", v4_continuous: "giving", future: "will give" },
       "see": { v1_present: "see / sees", v2_past: "saw", v3_past_participle: "seen", v4_continuous: "seeing", future: "will see" },
-      "beat": { v1_present: "beat / beats", v2_past: "beat", v3_past_participle: "beaten", v4_continuous: "beating", future: "will beat" },
+      "beat": { v1_present: "beat / beats", v2_past: "beat", v3_past_participle: "beaten", v4_continuous: "beating", future: "will beat" }
+    };
+
+    if (irregulars[v]) return irregulars[v];
+
+    let base = v;
+    let v2 = base.endsWith('e') ? base + 'd' : (base.endsWith('y') && !/[aeiou]y$/.test(base) ? base.slice(0, -1) + 'ied' : base + 'ed');
+    let v3 = v2;
+    let v4 = base.endsWith('e') && !base.endsWith('ee') && base !== 'be' ? base.slice(0, -1) + 'ing' : base + 'ing';
+    let s_form = base.endsWith('s') || base.endsWith('sh') || base.endsWith('ch') || base.endsWith('x') || base.endsWith('z') || base.endsWith('o') ? base + 'es' : (base.endsWith('y') && !/[aeiou]y$/.test(base) ? base.slice(0, -1) + 'ies' : base + 's');
+    let v1 = `${base} / ${s_form}`;
+    let fut = `will ${base}`;
+
+    return {
+      v1_present: v1,
+      v2_past: v2,
+      v3_past_participle: v3,
       v4_continuous: v4,
       future: fut
     };
@@ -3005,11 +3033,12 @@ function setViewMode(mode) {
 }
 
 function applyTheme(themeName) {
+  document.documentElement.setAttribute('data-theme', themeName);
   document.body.setAttribute('data-theme', themeName);
   state.currentTheme = themeName;
   safeStorage.set('e4t_theme', themeName);
 
-  document.querySelectorAll('.theme-opt-btn').forEach(btn => {
+  document.querySelectorAll('.theme-option, .theme-opt-btn').forEach(btn => {
     if (btn.dataset.theme === themeName) btn.classList.add('active');
     else btn.classList.remove('active');
   });
