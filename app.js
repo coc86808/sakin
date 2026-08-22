@@ -3902,8 +3902,15 @@ const VocabHubEngine = {
     const allVocab = window.VOCAB_DATA || [];
     const lessonSet = new Set();
     allVocab.forEach(item => {
-      if (unitVal === 'all' || String(item.unit) === String(unitVal)) {
-        if (item.lesson) lessonSet.add(item.lesson);
+      let uMatch = false;
+      if (unitVal === 'all') {
+        uMatch = true;
+      } else {
+        const uStr = String(item.unit || '').trim();
+        uMatch = (uStr === String(unitVal) || uStr.startsWith('Unit ' + unitVal + ':') || uStr.startsWith('Unit ' + unitVal + ' ') || uStr.startsWith(unitVal + ':'));
+      }
+      if (uMatch && item.lesson) {
+        lessonSet.add(item.lesson);
       }
     });
 
@@ -3963,7 +3970,13 @@ const VocabHubEngine = {
     }
 
     let filtered = allItems.filter(item => {
-      const uMatch = (selUnit === 'all' || String(item.unit) === String(selUnit));
+      let uMatch = false;
+      if (selUnit === 'all') {
+        uMatch = true;
+      } else {
+        const uStr = String(item.unit || '').trim();
+        uMatch = (uStr === String(selUnit) || uStr.startsWith('Unit ' + selUnit + ':') || uStr.startsWith('Unit ' + selUnit + ' ') || uStr.startsWith(selUnit + ':'));
+      }
       const lMatch = (selLesson === 'all' || String(item.lesson) === String(selLesson));
       return uMatch && lMatch;
     });
