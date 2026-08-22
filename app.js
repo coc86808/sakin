@@ -187,7 +187,8 @@ function initElements() {
     paneNotes: document.getElementById('paneNotes'),
     paneVocab: document.getElementById('paneVocab'),
     tocTree: document.getElementById('tocTree'),
-    tocSearchInput: document.getElementById('tocSearchInput'),
+    tocSearchInput: document.getElementById('tocFilterInput') || document.getElementById('tocSearchInput'),
+    tocFilterInput: document.getElementById('tocFilterInput') || document.getElementById('tocSearchInput'),
     bookmarksList: document.getElementById('bookmarksList'),
     notesList: document.getElementById('notesList'),
     sidebarVocabList: document.getElementById('sidebarVocabList'),
@@ -1471,26 +1472,40 @@ function renderTOC() {
   if (!state.bookData || !state.bookData.toc || !elements.tocTree) return;
 
   let html = '';
-  state.bookData.toc.forEach(unit => {
+  state.bookData.toc.forEach((unit, uIdx) => {
+    const isExpanded = (uIdx === 0) ? 'expanded' : '';
     html += `
-      <div class="toc-unit-item" data-page="${unit.start_page}">
+      <div class="toc-unit-item ${isExpanded}" data-page="${unit.start_page}" data-unit="${unit.unit_number || (uIdx + 1)}">
         <div class="toc-unit-header" onclick="toggleTOCUnit(this)">
-          <i class="fa-solid fa-folder"></i>
-          <span class="toc-unit-title">${unit.title}</span>
-          <button class="unit-quiz-mini-btn" onclick="event.stopPropagation(); startQuizForUnit(${unit.unit_number || 1});" title="Practice MCQs for this Unit"><i class="fa-solid fa-graduation-cap"></i> Quiz</button>
-          <i class="fa-solid fa-chevron-down toc-arrow"></i>
+          <div class="toc-unit-left">
+            <i class="fa-solid fa-folder${isExpanded ? '-open' : ''} toc-unit-icon"></i>
+            <span class="toc-unit-title">${unit.title}</span>
+          </div>
+          <div class="toc-unit-actions">
+            <button class="unit-quiz-mini-btn" onclick="event.stopPropagation(); startQuizForUnit(${unit.unit_number || (uIdx + 1)});" title="Practice MCQs for this Unit">
+              <i class="fa-solid fa-graduation-cap"></i> Quiz
+            </button>
+            <i class="fa-solid fa-chevron-down toc-arrow"></i>
+          </div>
         </div>
         <div class="toc-lessons-list">
     `;
 
     if (unit.lessons && unit.lessons.length > 0) {
       unit.lessons.forEach(lesson => {
+        const displayPage = lesson.start_page >= 7 ? lesson.start_page - 6 : lesson.start_page;
         html += `
           <div class="toc-lesson-item" data-page="${lesson.start_page}" onclick="goToPage(${lesson.start_page})">
-            <i class="fa-regular fa-file-lines"></i>
-            <span class="toc-lesson-title">${lesson.title}</span>
-            <span class="toc-page-tag">Page ${lesson.start_page >= 7 ? lesson.start_page - 6 : lesson.start_page}</span>
-            <button class="lesson-quiz-mini-btn" onclick="event.stopPropagation(); startQuizForLesson('${lesson.title.replace(/'/g, "\\'")}');" title="Practice Lesson MCQs"><i class="fa-solid fa-graduation-cap"></i></button>
+            <div class="toc-lesson-left">
+              <i class="fa-regular fa-file-lines toc-lesson-icon"></i>
+              <span class="toc-lesson-title" title="${lesson.title}">${lesson.title}</span>
+            </div>
+            <div class="toc-lesson-meta">
+              <span class="toc-page-tag">p. ${displayPage}</span>
+              <button class="lesson-quiz-mini-btn" onclick="event.stopPropagation(); startQuizForLesson('${lesson.title.replace(/'/g, "\'")}');" title="Practice Lesson MCQs">
+                <i class="fa-solid fa-graduation-cap"></i>
+              </button>
+            </div>
           </div>
         `;
       });
@@ -1509,6 +1524,45 @@ function toggleTOCUnit(headerElem) {
   const unitItem = headerElem.closest('.toc-unit-item');
   if (!unitItem) return;
   unitItem.classList.toggle('expanded');
+  const icon = unitItem.querySelector('.toc-unit-icon');
+  if (icon) {
+    if (unitItem.classList.contains('expanded')) {
+      icon.className = 'fa-solid fa-folder-open toc-unit-icon';
+    } else {
+      icon.className = 'fa-solid fa-folder toc-unit-icon';
+    }
+  }
+}
+
+function filterTOC(query) {
+  if (!elements.tocTree) return;
+  const q = (query || '').toLowerCase().trim();
+  const unitItems = elements.tocTree.querySelectorAll('.toc-unit-item');
+
+  unitItems.forEach(unitItem => {
+    const unitTitle = (unitItem.querySelector('.toc-unit-title')?.textContent || '').toLowerCase();
+    const lessonItems = unitItem.querySelectorAll('.toc-lesson-item');
+    let hasMatchingLesson = false;
+
+    lessonItems.forEach(lItem => {
+      const lTitle = (lItem.querySelector('.toc-lesson-title')?.textContent || '').toLowerCase();
+      if (!q || lTitle.includes(q) || unitTitle.includes(q)) {
+        lItem.style.display = 'flex';
+        hasMatchingLesson = true;
+      } else {
+        lItem.style.display = 'none';
+      }
+    });
+
+    if (!q) {
+      unitItem.style.display = 'block';
+    } else if (unitTitle.includes(q) || hasMatchingLesson) {
+      unitItem.style.display = 'block';
+      unitItem.classList.add('expanded');
+    } else {
+      unitItem.style.display = 'none';
+    }
+  });
 }
 
 function highlightActiveTOC(pageNum) {
