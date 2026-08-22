@@ -1241,7 +1241,47 @@ function startMistakesOnlyPractice() {
   renderExamQuestion();
 }
 
-// Enhanced High-Entropy Fisher-Yates array shuffler for randomized MCQ choices
+// Magoosh-Style Dynamic Option Arranging Engine
+function getArrangedMCQChoices(wordObj) {
+  if (!wordObj) return [];
+  const correct = (wordObj.correctDefinition || '').trim();
+  
+  // Extract distractors (all choices except the exact correct definition)
+  let distractors = (wordObj.options || []).filter(opt => (opt || '').trim() !== correct);
+  
+  // If fewer than 3 distractors, draw high-quality distractors from other words in vocabList
+  if (distractors.length < 3 && state.vocabList && state.vocabList.length > 1) {
+    const pool = state.vocabList.filter(w => w.word !== wordObj.word && w.correctDefinition && w.correctDefinition.trim() !== correct);
+    const shuffledPool = shuffleArray(pool);
+    for (const pw of shuffledPool) {
+      if (!distractors.includes(pw.correctDefinition)) {
+        distractors.push(pw.correctDefinition);
+        if (distractors.length >= 3) break;
+      }
+    }
+  }
+
+  // Shuffle the distractors
+  distractors = shuffleArray(distractors).slice(0, 3);
+
+  // Magoosh random slot selection: Pick slot 0 (A), 1 (B), 2 (C), or 3 (D)
+  const targetSlot = Math.floor(Math.random() * 4);
+
+  const finalChoices = [];
+  let dIdx = 0;
+  for (let i = 0; i < 4; i++) {
+    if (i === targetSlot) {
+      finalChoices.push(correct);
+    } else {
+      finalChoices.push(distractors[dIdx] || 'alternative option definition');
+      dIdx++;
+    }
+  }
+
+  return finalChoices;
+}
+
+// Enhanced High-Entropy Fisher-Yates array shuffler
 function shuffleArray(arr) {
   if (!Array.isArray(arr) || arr.length <= 1) return [...(arr || [])];
   const copy = [...arr];
@@ -1320,8 +1360,8 @@ function renderExamQuestion() {
   if (optionsContainer) {
     const letters = ['A', 'B', 'C', 'D'];
     
-    // Dynamic Fisher-Yates shuffle: every question has randomized option positions
-    const shuffledChoices = shuffleArray(wordObj.options || [wordObj.correctDefinition]);
+    // Magoosh Dynamic Option Arranger: Randomly places correct answer across A, B, C, D
+    const shuffledChoices = getArrangedMCQChoices(wordObj);
     
     let html = '';
     shuffledChoices.forEach((opt, idx) => {
