@@ -536,6 +536,7 @@ function goToPage(pageNum, triggerFlip = true, updateHistory = true) {
     setTimeout(() => focusWordInRenderedPage(w), 250);
   }
   updateActiveTOC(validPage);
+  updateBookmarkButtonState();
   
   if (triggerFlip) {
     AudioEngine.playPaperFlip();
@@ -2603,14 +2604,17 @@ function removeBookmark(page) {
 }
 
 function updateBookmarkButtonState() {
-  if (!elements.bookmarkTriggerBtn) return;
+  const btn = elements.bookmarkBtn || elements.bookmarkTriggerBtn || document.getElementById('bookmarkBtn');
+  if (!btn) return;
   const isBookmarked = state.bookmarks.some(b => b.page === state.currentPage);
   if (isBookmarked) {
-    elements.bookmarkTriggerBtn.classList.add('bookmarked');
-    elements.bookmarkTriggerBtn.innerHTML = '<i class="fa-solid fa-bookmark"></i>';
+    btn.classList.add('bookmarked');
+    btn.classList.add('active');
+    btn.innerHTML = '<i class="fa-solid fa-bookmark" style="color: #f59e0b;"></i>';
   } else {
-    elements.bookmarkTriggerBtn.classList.remove('bookmarked');
-    elements.bookmarkTriggerBtn.innerHTML = '<i class="fa-regular fa-bookmark"></i>';
+    btn.classList.remove('bookmarked');
+    btn.classList.remove('active');
+    btn.innerHTML = '<i class="fa-regular fa-bookmark"></i>';
   }
 }
 
@@ -3209,6 +3213,7 @@ function applyTheme(themeName) {
 function applyFontSize(size) {
   state.fontSize = size;
   document.documentElement.style.setProperty('--font-reader-size', `${size}px`);
+  document.documentElement.style.setProperty('--book-font-size', `${size}px`);
   if (elements.fontSizeVal) elements.fontSizeVal.textContent = `${size}px`;
   safeStorage.set('e4t_font_size', size);
 }
@@ -3216,13 +3221,38 @@ function applyFontSize(size) {
 function applyLineHeight(lh) {
   state.lineHeight = lh;
   document.documentElement.style.setProperty('--line-height-reader', lh);
+  document.documentElement.style.setProperty('--book-line-height', lh);
   if (elements.lineHeightVal) elements.lineHeightVal.textContent = `${lh}x`;
   safeStorage.set('e4t_line_height', lh);
+}
+
+function applyFontFamily(fontKey) {
+  state.fontFamily = fontKey;
+  let fontValue = "'Lora', 'Merriweather', Georgia, serif";
+  if (fontKey === 'inter' || fontKey === 'sans') {
+    fontValue = "'Inter', system-ui, -apple-system, sans-serif";
+  } else if (fontKey === 'merriweather') {
+    fontValue = "'Merriweather', 'Lora', Georgia, serif";
+  } else if (fontKey === 'lora') {
+    fontValue = "'Lora', 'Merriweather', Georgia, serif";
+  }
+  document.documentElement.style.setProperty('--font-book', fontValue);
+  document.documentElement.style.setProperty('--book-font-family', fontValue);
+  document.body.setAttribute('data-font-family', fontKey);
+  safeStorage.set('e4t_font_family', fontKey);
+
+  document.querySelectorAll('.font-btn').forEach(btn => {
+    if (btn.dataset.font === fontKey) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
 }
 
 function loadSavedPreferences() {
   const savedTheme = safeStorage.get('e4t_theme', 'midnight');
   applyTheme(savedTheme);
+
+  const savedFont = safeStorage.get('e4t_font_family', 'lora');
+  applyFontFamily(savedFont);
 
   const savedSize = parseInt(safeStorage.get('e4t_font_size', '18'), 10);
   applyFontSize(savedSize);
