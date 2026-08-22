@@ -1992,19 +1992,42 @@ async function lookupDictionary(word) {
 
   if (!localData || !localData.bangla) {
     try {
-      const transResp = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanWord)}&langpair=en|bn`);
-      if (transResp.ok) {
-        const tData = await transResp.json();
-        if (tData.responseData && tData.responseData.translatedText) {
-          liveBangla = tData.responseData.translatedText;
+      // 1. Google Translate GTX API (High Accuracy Authoritative Bengali)
+      const gtxUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=bn&dt=t&q=${encodeURIComponent(cleanWord)}`;
+      const gtxResp = await fetch(gtxUrl);
+      if (gtxResp.ok) {
+        const gData = await gtxResp.json();
+        if (Array.isArray(gData) && gData[0] && gData[0][0] && gData[0][0][0]) {
+          const trans = gData[0][0][0].trim();
+          if (trans && trans.toLowerCase() !== cleanWord && trans.length > 1 && !['বিং', 'সং', 'ক্লি', 'পুং', 'বি', 'অব্য'].includes(trans)) {
+            liveBangla = trans;
+          }
         }
       }
     } catch (e) {
-      console.warn('MyMemory Bangla Translation notice:', e);
+      console.warn('Google Translate API notice:', e);
+    }
+
+    // 2. Fallback to MyMemory only if Google GTX did not resolve and filter junk abbreviations
+    if (!liveBangla) {
+      try {
+        const transResp = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanWord)}&langpair=en|bn`);
+        if (transResp.ok) {
+          const tData = await transResp.json();
+          if (tData.responseData && tData.responseData.translatedText) {
+            const rawTrans = tData.responseData.translatedText.trim();
+            if (rawTrans && rawTrans.length > 2 && !['বিং', 'সং', 'ক্লি', 'পুং', 'বি', 'অব্য'].includes(rawTrans)) {
+              liveBangla = rawTrans;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('MyMemory Bangla Translation notice:', e);
+      }
     }
   }
 
-  const finalBangla = (localData && localData.bangla) ? localData.bangla : (liveBangla || 'অভিধানে অর্থ খোঁজা হচ্ছে...');
+  const finalBangla = (localData && localData.bangla) ? localData.bangla : (liveBangla || 'অর্থ পাওয়া যায়নি');
   renderBilingualDictionaryData(cleanWord, apiEntry, localData, finalBangla);
 }
 
