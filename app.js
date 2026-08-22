@@ -1241,7 +1241,9 @@ function startMistakesOnlyPractice() {
   renderExamQuestion();
 }
 
-// Magoosh-Style Dynamic Option Arranging Engine
+// Magoosh-Style Dynamic Option Arranging Engine with Guaranteed Slot Rotation
+const _wordPreviousSlots = {};
+
 function getArrangedMCQChoices(wordObj) {
   if (!wordObj) return [];
   const correct = (wordObj.correctDefinition || '').trim();
@@ -1264,8 +1266,16 @@ function getArrangedMCQChoices(wordObj) {
   // Shuffle the distractors
   distractors = shuffleArray(distractors).slice(0, 3);
 
-  // Magoosh random slot selection: Pick slot 0 (A), 1 (B), 2 (C), or 3 (D)
-  const targetSlot = Math.floor(Math.random() * 4);
+  // Guaranteed Slot Rotation: If this word appeared previously, pick a DIFFERENT slot!
+  const lastSlot = _wordPreviousSlots[wordObj.word];
+  let targetSlot;
+  if (typeof lastSlot === 'number') {
+    const availableSlots = [0, 1, 2, 3].filter(s => s !== lastSlot);
+    targetSlot = availableSlots[Math.floor(Math.random() * availableSlots.length)];
+  } else {
+    targetSlot = Math.floor(Math.random() * 4);
+  }
+  _wordPreviousSlots[wordObj.word] = targetSlot;
 
   const finalChoices = [];
   let dIdx = 0;
