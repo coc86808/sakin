@@ -2079,6 +2079,11 @@ async function lookupDictionary(word) {
     }
   }
 
+  if (localData) {
+    const initBangla = localData.bangla || '';
+    renderBilingualDictionaryData(cleanWord, null, localData, initBangla);
+  }
+
   let apiEntry = null;
   let liveBangla = null;
 
@@ -3866,60 +3871,75 @@ const VocabHubEngine = {
   // 12 Standard NCTB Units Definition
   unitsData: [
     { id: '1', title: 'Unit 1: Education and Life', lessonsCount: 4, lessons: [
-      { id: '1', title: "Lesson 1: The Parrot's Tale" },
-      { id: '2', title: "Lesson 2: Education and Technology" },
-      { id: '3', title: "Lesson 3: Children in School" },
-      { id: '4', title: "Lesson 4: A Mother in Mannville" }
+      { id: '1', title: "Lesson 1: The Parrot's Tale", page: 7 },
+      { id: '2', title: "Lesson 2: Education and Technology", page: 13 },
+      { id: '3', title: "Lesson 3: Children in School", page: 20 },
+      { id: '4', title: "Lesson 4: Civic Engagement", page: 31 }
     ]},
     { id: '2', title: 'Unit 2: Art and Craft', lessonsCount: 4, lessons: [
-      { id: '1', title: "Lesson 1: What is Beauty?" },
-      { id: '2', title: "Lesson 2: Folk Music" },
-      { id: '3', title: "Lesson 3: Art" },
-      { id: '4', title: "Lesson 4: Craft" }
+      { id: '1', title: "Lesson 1: What is Beauty?", page: 36 },
+      { id: '2', title: "Lesson 2: Folk Music", page: 40 },
+      { id: '3', title: "Lesson 3: Art", page: 47 },
+      { id: '4', title: "Lesson 4: Craft", page: 53 }
     ]},
-    { id: '3', title: 'Unit 3: Dreams and Aspirations', lessonsCount: 2, lessons: [
-      { id: '1', title: "Lesson 1: What is a Dream?" },
-      { id: '2', title: "Lesson 2: I Have a Dream" }
+    { id: '3', title: 'Unit 3: Myths and Literature', lessonsCount: 4, lessons: [
+      { id: '1', title: "Lesson 1: Myths of Bengal", page: 57 },
+      { id: '2', title: "Lesson 2: Icarus", page: 61 },
+      { id: '3', title: "Lesson 3: The Legend of Gazi", page: 66 },
+      { id: '4', title: "Lesson 4: Khona", page: 68 }
     ]},
-    { id: '4', title: 'Unit 4: Traffic Education', lessonsCount: 3, lessons: [
-      { id: '1', title: "Lesson 1: How Your Brain Negotiates Traffic" },
-      { id: '2', title: "Lesson 2: Traffic Signals" },
-      { id: '3', title: "Lesson 3: Public Transport" }
+    { id: '4', title: 'Unit 4: History', lessonsCount: 2, lessons: [
+      { id: '1', title: "Lesson 1: Three Speeches", page: 71 },
+      { id: '2', title: "Lesson 2: Great Women", page: 83 }
     ]},
-    { id: '5', title: 'Unit 5: Youthful Achievers', lessonsCount: 3, lessons: [
-      { id: '1', title: "Lesson 1: The Channel Swimmer" },
-      { id: '2', title: "Lesson 2: Scaling a Mountain Peak" },
-      { id: '3', title: "Lesson 3: Youth Leading Change" }
+    { id: '5', title: 'Unit 5: Human Rights', lessonsCount: 5, lessons: [
+      { id: '1', title: "Lesson 1: Are We Aware of These Rights-I?", page: 94 },
+      { id: '2', title: "Lesson 2: Are We Aware of These Rights-II?", page: 97 },
+      { id: '3', title: "Lesson 3: Rights to Health and Education", page: 100 },
+      { id: '4', title: "Lesson 4: Coal Miners", page: 102 },
+      { id: '5', title: "Lesson 5: Frederick Douglass", page: 105 }
     ]},
-    { id: '6', title: 'Unit 6: Relationships', lessonsCount: 2, lessons: [
-      { id: '1', title: "Lesson 1: Etiquette and Manners" },
-      { id: '2', title: "Lesson 2: Love and Friendship" }
+    { id: '6', title: 'Unit 6: Dreams', lessonsCount: 2, lessons: [
+      { id: '1', title: "Lesson 1: What is a Dream?", page: 110 },
+      { id: '2', title: "Lesson 2: Dreams in Literature", page: 115 }
     ]},
-    { id: '7', title: 'Unit 7: Adolescence and Youth', lessonsCount: 3, lessons: [
-      { id: '1', title: "Lesson 1: The Storm and Stress of Adolescence" },
-      { id: '2', title: "Lesson 2: Adolescent Health" },
-      { id: '3', title: "Lesson 3: Community Health" }
+    { id: '7', title: 'Unit 7: Youthful Achievers', lessonsCount: 3, lessons: [
+      { id: '1', title: "Lesson 1: Brojen Das: On Crossing the English Channel", page: 120 },
+      { id: '2', title: "Lesson 2: Scaling a Mountain Peak", page: 124 },
+      { id: '3', title: "Lesson 3: The Unbeaten Girls", page: 127 }
     ]},
-    { id: '8', title: 'Unit 8: Human Rights', lessonsCount: 2, lessons: [
-      { id: '1', title: "Lesson 1: Universal Declaration of Human Rights" },
-      { id: '2', title: "Lesson 2: Nelson Mandela" }
+    { id: '8', title: 'Unit 8: Relationships', lessonsCount: 4, lessons: [
+      { id: '1', title: "Lesson 1: Family Relationship", page: 132 },
+      { id: '2', title: "Lesson 2: Warmth in Relationships", page: 135 },
+      { id: '3', title: "Lesson 3: A Mother in Mannville", page: 138 },
+      { id: '4', title: "Lesson 4: Love", page: 148 }
     ]},
-    { id: '9', title: 'Unit 9: Peace and Conflict', lessonsCount: 2, lessons: [
-      { id: '1', title: "Lesson 1: Resolving Conflicts" },
-      { id: '2', title: "Lesson 2: Peace Treaties" }
+    { id: '9', title: 'Unit 9: Adolescence', lessonsCount: 4, lessons: [
+      { id: '1', title: "Lesson 1: Storms and Stresses of Adolescence", page: 153 },
+      { id: '2', title: "Lesson 2: Adolescence and Some (Related) Problems in Bangladesh", page: 157 },
+      { id: '3', title: "Lesson 3: The Story of Shilpi", page: 162 },
+      { id: '4', title: "Lesson 4: Say 'No' to Bullying", page: 167 }
     ]},
-    { id: '10', title: 'Unit 10: Environment and Nature', lessonsCount: 3, lessons: [
-      { id: '1', title: "Lesson 1: The Sundarbans Mangrove" },
-      { id: '2', title: "Lesson 2: Threats to Wildlife" },
-      { id: '3', title: "Lesson 3: Protecting Forests" }
+    { id: '10', title: 'Unit 10: Lifestyle', lessonsCount: 5, lessons: [
+      { id: '1', title: "Lesson 1: Manners around the World", page: 177 },
+      { id: '2', title: "Lesson 2: Etiquette Netiquette", page: 184 },
+      { id: '3', title: "Lesson 3: Food and Culture", page: 187 },
+      { id: '4', title: "Lesson 4: Fitness", page: 191 },
+      { id: '5', title: "Lesson 5: Consumerism", page: 196 }
     ]},
-    { id: '11', title: 'Unit 11: Tours and Travels', lessonsCount: 2, lessons: [
-      { id: '1', title: "Lesson 1: Exploring Kuakata" },
-      { id: '2', title: "Lesson 2: Eco-Tourism in Bangladesh" }
+    { id: '11', title: 'Unit 11: Peace and Conflict', lessonsCount: 5, lessons: [
+      { id: '1', title: "Lesson 1: Situations of Conflict", page: 199 },
+      { id: '2', title: "Lesson 2: \"The Old Man at the Bridge\" by Ernest Hemingway", page: 203 },
+      { id: '3', title: "Lesson 3: Stories From Gaza", page: 208 },
+      { id: '4', title: "Lesson 4: Peace in Literature", page: 214 },
+      { id: '5', title: "Lesson 5: Opinions through Images", page: 219 }
     ]},
-    { id: '12', title: 'Unit 12: Myths and Literature', lessonsCount: 2, lessons: [
-      { id: '1', title: "Lesson 1: Hercules and Greek Legends" },
-      { id: '2', title: "Lesson 2: The Legend of Gazi" }
+    { id: '12', title: 'Unit 12: Environment and Nature', lessonsCount: 5, lessons: [
+      { id: '1', title: "Lesson 1: Water, Water Everywhere...", page: 224 },
+      { id: '2', title: "Lesson 2: The Greta Effect", page: 227 },
+      { id: '3', title: "Lesson 3: Endangered Species", page: 230 },
+      { id: '4', title: "Lesson 4: What is Environmental Justice?", page: 236 },
+      { id: '5', title: "Lesson 5: Limits of the Scientific Method", page: 241 }
     ]}
   ],
 
@@ -4038,7 +4058,9 @@ const VocabHubEngine = {
           goToPage(targetPage, false, false);
           if (q.word) {
             state.focusedTargetWord = q.word;
-            setTimeout(() => focusWordInRenderedPage(q.word), 300);
+            setTimeout(() => focusWordInRenderedPage(q.word), 120);
+            setTimeout(() => focusWordInRenderedPage(q.word), 350);
+            setTimeout(() => focusWordInRenderedPage(q.word), 700);
           }
         }
       };
@@ -4050,14 +4072,18 @@ const VocabHubEngine = {
     const tierUnits = document.getElementById('magooshUnitsTier');
     const tierLessons = document.getElementById('magooshLessonsTier');
     const tierQuiz = document.getElementById('magooshQuizTier');
-    const backBtn = document.getElementById('magooshBackBtn');
+    const breadcrumb = document.getElementById('magooshBreadcrumb');
+    const bcUnit = document.getElementById('breadcrumbUnitName');
 
     if (tierUnits) tierUnits.classList.toggle('hidden', tierName !== 'units');
     if (tierLessons) tierLessons.classList.toggle('hidden', tierName !== 'lessons');
     if (tierQuiz) tierQuiz.classList.toggle('hidden', tierName !== 'quiz');
 
-    if (backBtn) {
-      backBtn.classList.toggle('hidden', tierName === 'units');
+    if (breadcrumb) {
+      breadcrumb.classList.toggle('hidden', tierName === 'units');
+      if (this.state.activeUnit && bcUnit) {
+        bcUnit.textContent = this.state.activeUnit.title;
+      }
     }
 
     if (tierName === 'units') {
@@ -4071,12 +4097,31 @@ const VocabHubEngine = {
   },
 
   getWordsForUnitLesson(unitId, lessonId) {
-    const allMaster = window.MASTER_MCQ_DATABASE || [];
     const uStr = String(unitId).trim();
     const lStr = String(lessonId).trim();
+    const vocabList = window.VOCAB_DATA || [];
+    const masterList = window.MASTER_MCQ_DATABASE || [];
 
-    return allMaster.filter(item => {
-      const uMatch = (String(item.unit) === uStr || String(item.unit).startsWith('Unit ' + uStr + ':') || String(item.unit).startsWith('Unit ' + uStr + ' ') || String(item.unit) === uStr);
+    const STOP_WORDS = new Set([
+      'a', 'an', 'the', 'in', 'on', 'at', 'to', 'for', 'of', 'by', 'with', 'from', 'about', 'above', 
+      'across', 'after', 'against', 'along', 'amid', 'among', 'and', 'around', 'as', 'before', 'behind', 
+      'below', 'beneath', 'beside', 'between', 'beyond', 'but', 'by', 'down', 'during', 'except', 'for', 
+      'from', 'in', 'inside', 'into', 'like', 'near', 'of', 'off', 'on', 'onto', 'out', 'outside', 'over', 
+      'past', 'since', 'through', 'throughout', 'to', 'toward', 'under', 'underneath', 'until', 'unto', 
+      'up', 'upon', 'with', 'within', 'without', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 
+      'has', 'had', 'do', 'does', 'did', 'will', 'would', 'shall', 'should', 'can', 'could', 'may', 'might', 
+      'must', 'it', 'its', 'they', 'them', 'their', 'theirs', 'he', 'him', 'his', 'she', 'her', 'hers', 
+      'we', 'us', 'our', 'ours', 'you', 'your', 'yours', 'i', 'me', 'my', 'mine', 'that', 'this', 'these', 
+      'those', 'who', 'whom', 'whose', 'which', 'what', 'where', 'when', 'why', 'how', 'all', 'any', 'both', 
+      'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 
+      'so', 'than', 'too', 'very', 's', 't', 'just', 'don', 'now'
+    ]);
+
+    // 1. Filter VOCAB_DATA
+    const vWords = vocabList.filter(item => {
+      const uMatch = (String(item.unitNumber) === uStr || 
+                      String(item.unit).startsWith('Unit ' + uStr + ':') || 
+                      String(item.unit).startsWith('Unit ' + uStr + ' '));
       let lMatch = true;
       if (lessonId !== 'all') {
         const itemL = String(item.lesson || '1').replace(/[^0-9]/g, '');
@@ -4084,6 +4129,37 @@ const VocabHubEngine = {
       }
       return uMatch && lMatch;
     });
+
+    // 2. Filter MASTER_MCQ_DATABASE (excluding STOP_WORDS)
+    const mWords = masterList.filter(item => {
+      if (!item.word || STOP_WORDS.has(item.word.toLowerCase()) || item.word.length < 3) return false;
+      const uMatch = (String(item.unit) === uStr || 
+                      String(item.unit).startsWith('Unit ' + uStr + ':') || 
+                      String(item.unit).startsWith('Unit ' + uStr + ' '));
+      let lMatch = true;
+      if (lessonId !== 'all') {
+        const itemL = String(item.lesson || '1').replace(/[^0-9]/g, '');
+        lMatch = (itemL === lStr || String(item.lesson) === lStr || String(item.lesson).includes('Lesson ' + lStr));
+      }
+      return uMatch && lMatch;
+    });
+
+    const combined = [];
+    const seen = new Set();
+    vWords.forEach(w => {
+      if (!seen.has(w.word.toLowerCase())) {
+        seen.add(w.word.toLowerCase());
+        combined.push(w);
+      }
+    });
+    mWords.forEach(w => {
+      if (!seen.has(w.word.toLowerCase())) {
+        seen.add(w.word.toLowerCase());
+        combined.push(w);
+      }
+    });
+
+    return combined;
   },
 
   // -------------------------------------------------------------
@@ -4210,47 +4286,116 @@ const VocabHubEngine = {
     const words = this.getWordsForUnitLesson(unit.id, lesson.id);
     let questions = [];
 
-    if (words.length > 0) {
-      words.forEach(w => {
-        if (w.mcqs && w.mcqs.length > 0) {
-          const pick = w.mcqs[Math.floor(Math.random() * w.mcqs.length)];
-          questions.push({
-            word: w.word,
-            partOfSpeech: w.part_of_speech,
-            meaning_bn: w.meaning_bn,
-            english_definition: w.english_definition,
-            synonyms: Array.isArray(w.synonyms) ? w.synonyms.join(', ') : w.synonyms,
-            use_case: w.use_case || w.textbookUseCase || '',
-            page: w.page || 7,
-            question: pick.question,
-            options: pick.options,
-            correct_answer: pick.correct_answer,
-            explanation: pick.explanation
-          });
+    const allVocab = window.VOCAB_DATA || [];
+    const allBanglaMeanings = allVocab.map(v => v.bangla).filter(Boolean);
+
+    words.forEach(w => {
+      if (w.mcqs && w.mcqs.length > 0) {
+        const pick = w.mcqs[Math.floor(Math.random() * w.mcqs.length)];
+        questions.push({
+          word: w.word,
+          partOfSpeech: w.part_of_speech || w.partOfSpeech || 'noun',
+          meaning_bn: w.meaning_bn || w.bangla || '',
+          english_definition: w.english_definition || w.correctDefinition || '',
+          synonyms: Array.isArray(w.synonyms) ? w.synonyms.join(', ') : (w.synonyms || ''),
+          use_case: w.use_case || w.textbookUseCase || w.example || '',
+          page: w.page || 7,
+          question: pick.question,
+          options: pick.options,
+          correct_answer: pick.correct_answer,
+          explanation: pick.explanation
+        });
+      } else if (w.options && Array.isArray(w.options) && w.options.length >= 4) {
+        const correctDef = w.options[0];
+        const rawOptions = [...w.options];
+        
+        // Fisher-Yates shuffle
+        const shuffled = [...rawOptions];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
-      });
-    }
+        
+        const letters = ['A', 'B', 'C', 'D'];
+        const optionsObj = {};
+        let correctLetter = 'A';
+        
+        letters.forEach((l, idx) => {
+          optionsObj[l] = shuffled[idx];
+          if (shuffled[idx] === correctDef) {
+            correctLetter = l;
+          }
+        });
+
+        questions.push({
+          word: w.word,
+          partOfSpeech: w.partOfSpeech || 'noun',
+          meaning_bn: w.bangla || '',
+          english_definition: w.correctDefinition || correctDef,
+          synonyms: w.synonyms || '',
+          use_case: w.textbookUseCase || w.useCase || w.example || '',
+          page: w.page || 7,
+          question: `Which definition best describes the word "${w.word}"?`,
+          options: optionsObj,
+          correct_answer: correctLetter,
+          explanation: `"${w.word}" (${w.bangla}) means: ${w.correctDefinition || correctDef}`
+        });
+      } else if (w.bangla) {
+        const correctMeaning = w.bangla;
+        const otherMeanings = allBanglaMeanings.filter(m => m !== correctMeaning);
+        const distractors = otherMeanings.sort(() => 0.5 - Math.random()).slice(0, 3);
+        while (distractors.length < 3) {
+          distractors.push('প্রাসঙ্গিক ব্যাকরণিক বৈশিষ্ট্য');
+        }
+        const optionPool = [correctMeaning, ...distractors].sort(() => 0.5 - Math.random());
+        const letters = ['A', 'B', 'C', 'D'];
+        const optionsObj = {};
+        let correctLetter = 'A';
+
+        letters.forEach((l, idx) => {
+          optionsObj[l] = optionPool[idx];
+          if (optionPool[idx] === correctMeaning) {
+            correctLetter = l;
+          }
+        });
+
+        questions.push({
+          word: w.word,
+          partOfSpeech: w.partOfSpeech || 'noun',
+          meaning_bn: w.bangla,
+          english_definition: w.correctDefinition || '',
+          synonyms: w.synonyms || '',
+          use_case: w.textbookUseCase || w.example || '',
+          page: w.page || 7,
+          question: `"${w.word}" শব্দটির সঠিক বাংলা অর্থ কোনটি?`,
+          options: optionsObj,
+          correct_answer: correctLetter,
+          explanation: `"${w.word}" শব্দটির প্রমিত বাংলা অর্থ হলো "${w.bangla}"।`
+        });
+      }
+    });
 
     if (questions.length === 0) {
       const fallbackList = (window.VOCAB_DATA || []).slice(0, 5);
-      questions = fallbackList.map(v => ({
-        word: v.word,
-        partOfSpeech: v.partOfSpeech || 'noun',
-        meaning_bn: v.bangla || '',
-        english_definition: v.correctDefinition || '',
-        synonyms: v.synonyms || '',
-        use_case: v.textbookUseCase || '',
-        page: v.page || 7,
-        question: `"${v.word}" শব্দটির সঠিক বাংলা অর্থ কোনটি?`,
-        options: {
-          A: v.bangla,
-          B: 'প্রাকৃতিক বৈশিষ্ট্য',
-          C: 'মানসিক উৎকণ্ঠা',
-          D: 'সামাজিক শিষ্টাচার'
-        },
-        correct_answer: 'A',
-        explanation: `"${v.word}" শব্দটির প্রমিত বাংলা অর্থ হলো "${v.bangla}"।`
-      }));
+      questions = fallbackList.map((v, idx) => {
+        const letters = ['A', 'B', 'C', 'D'];
+        const randLetter = letters[idx % 4];
+        const opts = { A: 'অন্যান্য বৈশিষ্ট্য', B: 'মানসিক উৎকণ্ঠা', C: 'সামাজিক শিষ্টাচার', D: 'প্রাকৃতিক দৃশ্য' };
+        opts[randLetter] = v.bangla;
+        return {
+          word: v.word,
+          partOfSpeech: v.partOfSpeech || 'noun',
+          meaning_bn: v.bangla || '',
+          english_definition: v.correctDefinition || '',
+          synonyms: v.synonyms || '',
+          use_case: v.textbookUseCase || '',
+          page: v.page || 7,
+          question: `"${v.word}" শব্দটির সঠিক বাংলা অর্থ কোনটি?`,
+          options: opts,
+          correct_answer: randLetter,
+          explanation: `"${v.word}" শব্দটির প্রমিত বাংলা অর্থ হলো "${v.bangla}"।`
+        };
+      });
     }
 
     this.state.quizQuestions = questions;
