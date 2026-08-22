@@ -485,9 +485,9 @@ function initApp() {
   initMobileSidebar();
   loadSavedPreferences();
   
-  if (window.BOOK_CONTENT_DATA) {
-    state.bookData = window.BOOK_CONTENT_DATA;
-    state.totalPages = state.bookData.total_pages || 295;
+  if (window.BOOK_DATA || window.BOOK_CONTENT_DATA) {
+    state.bookData = window.BOOK_DATA || window.BOOK_CONTENT_DATA;
+    state.totalPages = state.bookData.total_pages || (state.bookData.pages ? state.bookData.pages.length : 295);
     if (elements.pageSlider) elements.pageSlider.max = state.totalPages;
   }
   
