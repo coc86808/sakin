@@ -4074,7 +4074,11 @@ const VocabHubEngine = {
 
     const restartQuizBtn = document.getElementById('magooshQuizRestartBtn');
     if (restartQuizBtn) {
-      restartQuizBtn.onclick = () => this.startLessonQuiz(this.state.activeUnit, this.state.activeLesson);
+      restartQuizBtn.onclick = () => {
+        const u = this.state.activeUnit || this.unitsData[0];
+        const l = this.state.activeLesson || (u && u.lessons && u.lessons[0]) || { id: '1', title: "Lesson 1: The Parrot's Tale", page: 7 };
+        this.startLessonQuiz(u, l);
+      };
     }
 
     const backToLessonsBtn = document.getElementById('magooshBackToLessonsBtn');
@@ -4233,7 +4237,8 @@ const VocabHubEngine = {
       const isCompleted = (completedLessons === unit.lessonsCount && unit.lessonsCount > 0);
 
       const card = document.createElement('div');
-      card.className = 'magoosh-card';
+      card.className = 'magoosh-card magoosh-unit-card';
+      card.setAttribute('data-unit-id', unit.id);
       card.innerHTML = `
         <div class="magoosh-card-body">
           <div class="magoosh-card-top">
@@ -4250,9 +4255,17 @@ const VocabHubEngine = {
         </button>
       `;
 
-      card.querySelector('.magoosh-card-action-btn').onclick = () => {
+      card.onclick = () => {
         this.openUnitLessons(unit);
       };
+
+      const actBtn = card.querySelector('.magoosh-card-action-btn');
+      if (actBtn) {
+        actBtn.onclick = (e) => {
+          e.stopPropagation();
+          this.openUnitLessons(unit);
+        };
+      }
 
       container.appendChild(card);
     });
@@ -4287,7 +4300,8 @@ const VocabHubEngine = {
       const isCompleted = (masteredCount === totalWords && totalWords > 0);
 
       const card = document.createElement('div');
-      card.className = 'magoosh-card';
+      card.className = 'magoosh-card magoosh-lesson-card';
+      card.setAttribute('data-lesson-id', lesson.id);
       card.innerHTML = `
         <div class="magoosh-card-body">
           <div class="magoosh-card-top">
@@ -4304,9 +4318,17 @@ const VocabHubEngine = {
         </button>
       `;
 
-      card.querySelector('.magoosh-card-action-btn').onclick = () => {
+      card.onclick = () => {
         this.startLessonQuiz(unit, lesson);
       };
+
+      const actBtn = card.querySelector('.magoosh-card-action-btn');
+      if (actBtn) {
+        actBtn.onclick = (e) => {
+          e.stopPropagation();
+          this.startLessonQuiz(unit, lesson);
+        };
+      }
 
       container.appendChild(card);
     });
@@ -4318,6 +4340,8 @@ const VocabHubEngine = {
   // TIER 3: START INTERACTIVE LESSON QUIZ
   // -------------------------------------------------------------
   startLessonQuiz(unit, lesson) {
+    unit = unit || this.state.activeUnit || this.unitsData[0];
+    lesson = lesson || this.state.activeLesson || (unit && unit.lessons && unit.lessons[0]) || { id: '1', title: "Lesson 1: The Parrot's Tale", page: 7 };
     this.state.activeUnit = unit;
     this.state.activeLesson = lesson;
 
@@ -4585,7 +4609,10 @@ if (typeof window !== 'undefined') {
   window.focusAndHighlightWordInText = focusWordInRenderedPage;
   window.lookupDictionary = lookupDictionary;
   window.openDictModal = lookupDictionary;
+  window.openDictionaryModal = lookupDictionary;
   window.TTSEngine = TTSEngine;
   window.VocabHubEngine = VocabHubEngine;
+  window.MagooshVocabHub = VocabHubEngine;
   window.AudioEngine = AudioEngine;
+  window.BANGLA_DICT = window.BANGLA_DICT_DATA;
 }
