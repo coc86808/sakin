@@ -7538,3 +7538,45 @@ html, body {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+
+
+/* Clean Fullscreen Layout Without Top Navbar */
+:root {
+  --navbar-height: 0px;
+}
+
+.navbar {
+  display: none !important;
+}
+
+.main-container {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  margin-top: 0 !important;
+}
+
+.vocabsprint-view, .vocab-hub-view {
+  min-height: 100vh !important;
+  height: 100vh !important;
+}
+
+.reader-back-to-dashboard-btn {
+  background: #15803d;
+  color: #ffffff;
+  border: none;
+  padding: 0.45rem 0.95rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: 1rem;
+  transition: background 0.15s ease;
+}
+
+.reader-back-to-dashboard-btn:hover {
+  background: #166534;
+}

@@ -4,6 +4,16 @@
 // ==========================================================================
 
 const VocabSprintDashboardEngine = {
+
+  const readerBackBtn = document.getElementById('readerBackToDashboardBtn');
+  if (readerBackBtn) {
+    readerBackBtn.onclick = () => {
+      if (window.VocabSprintDashboardEngine) {
+        window.VocabSprintDashboardEngine.switchView('dashboard');
+      }
+    };
+  }
+
   init() {
     this.bindEvents();
     this.updateGreetingTime();
