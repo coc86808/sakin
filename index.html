@@ -134,7 +134,224 @@
     <!-- ==========================================================================
          HERO VIEW 1: MAGOOSH-STYLE UNIT > LESSON VOCABULARY MASTERY HUB
          ========================================================================== -->
-    <main class="vocab-hub-view active" id="vocabHubView">
+    <!-- ==========================================================================
+         HERO VIEW 1: VOCABSPRINT USER DASHBOARD (PIXEL-PERFECT AS SPECIFIED)
+         ========================================================================== -->
+    <main class="vocabsprint-view active" id="vocabSprintView">
+      <div class="vs-layout-container">
+        
+        <!-- Dark Forest-Green Sidebar (Left) -->
+        <aside class="vs-sidebar" id="vsSidebar">
+          <div class="vs-sidebar-top">
+            <!-- Brand Logo -->
+            <div class="vs-brand">
+              <div class="vs-check-box">
+                <i class="fa-solid fa-check"></i>
+              </div>
+              <span class="vs-brand-name">VocabSprint</span>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="vs-nav-menu">
+              <button class="vs-nav-btn active" data-target="dashboard" id="vsNavDashboard">
+                <i class="fa-solid fa-grip-vertical"></i>
+                <span>Dashboard</span>
+              </button>
+              <button class="vs-nav-btn" data-target="practice" id="vsNavPractice">
+                <i class="fa-solid fa-dumbbell"></i>
+                <span>Practice</span>
+              </button>
+              <button class="vs-nav-btn" data-target="progress" id="vsNavProgress">
+                <i class="fa-solid fa-chart-simple"></i>
+                <span>Progress</span>
+              </button>
+              <button class="vs-nav-btn" data-target="review" id="vsNavReview">
+                <i class="fa-solid fa-rotate"></i>
+                <span>Review</span>
+              </button>
+              <button class="vs-nav-btn" data-target="compete" id="vsNavCompete">
+                <i class="fa-solid fa-trophy"></i>
+                <span>Compete</span>
+              </button>
+              <button class="vs-nav-btn" data-target="textbook" id="vsNavTextbook">
+                <i class="fa-solid fa-book-open"></i>
+                <span>Textbook</span>
+              </button>
+              <button class="vs-nav-btn" data-target="settings" id="vsNavSettings">
+                <i class="fa-solid fa-gear"></i>
+                <span>Settings</span>
+              </button>
+            </nav>
+          </div>
+
+          <!-- Sidebar Footer Tagline -->
+          <div class="vs-sidebar-footer">
+            <div class="vs-principle-title">Design principle</div>
+            <p class="vs-principle-text">One decision per screen. Instant feedback. Clear progress. Adaptive review.</p>
+          </div>
+        </aside>
+
+        <!-- Main Dashboard Canvas (Right) -->
+        <div class="vs-content-area" id="vsContentArea">
+          
+          <!-- Top Header Row -->
+          <header class="vs-main-header">
+            <div class="vs-greeting-block">
+              <h1 class="vs-greeting-title">Good <span id="vsGreetingTime">afternoon</span>,<span class="vs-user-highlight" id="vsUserName">sakin</span>.</h1>
+              <p class="vs-greeting-subtitle">10 minutes today can move your vocabulary forward.</p>
+            </div>
+
+            <!-- Profile & Streak Pill -->
+            <div class="vs-profile-streak-pill" id="vsProfilePill">
+              <div class="vs-streak-meta">
+                <strong class="vs-streak-count" id="vsStreakCount">7 day streak</strong>
+                <span class="vs-mastered-count" id="vsMasteredSummary">120 words mastered</span>
+              </div>
+              <div class="vs-avatar-circle" id="vsAvatarCircle" title="Logged in as Sakin">A</div>
+            </div>
+          </header>
+
+          <!-- Dashboard Two-Column Grid -->
+          <div class="vs-dashboard-grid">
+            
+            <!-- Left Main Column (Hero Journey + Learning Path) -->
+            <div class="vs-col-main">
+              
+              <!-- Hero "Continue your journey" Card -->
+              <section class="vs-journey-card">
+                <div class="vs-journey-content">
+                  <h2 class="vs-journey-title">Continue your journey</h2>
+                  <p class="vs-journey-subtitle" id="vsJourneySubtitle">
+                    Intermediate • Level 4 • 18 of 25 words mastered. Your next review is ready.
+                  </p>
+                  <button class="vs-start-practice-btn" id="vsHeroStartBtn">
+                    Start practice &rarr;
+                  </button>
+                </div>
+                <!-- Decorative Soft Radial Circles -->
+                <div class="vs-journey-decoration"></div>
+              </section>
+
+              <!-- Learning Path Section -->
+              <section class="vs-learning-path-section">
+                <div class="vs-section-header">
+                  <h3 class="vs-section-title">Learning path</h3>
+                  <p class="vs-section-subtitle">
+                    Levels unlock as your mastery improves. Difficult words automatically return more often.
+                  </p>
+                </div>
+
+                <!-- Learning Path Unit Level Cards -->
+                <div class="vs-path-cards-grid" id="vsLearningPathGrid">
+                  <!-- Dynamically Rendered Cards for Unite 1, Unite 2, Intermediate 1, etc. -->
+                </div>
+              </section>
+
+            </div>
+
+            <!-- Right Sidebar Column (2x2 Quick Stats + Today's Review) -->
+            <div class="vs-col-side">
+              
+              <!-- 2x2 Quick Stats Grid -->
+              <div class="vs-stats-grid-2x2">
+                
+                <!-- Stat 1: Accuracy -->
+                <div class="vs-stat-card">
+                  <div class="vs-stat-header">
+                    <span class="vs-stat-label">ACCURACY</span>
+                    <strong class="vs-stat-main-num" id="vsAccuracyNum">86%</strong>
+                    <span class="vs-stat-diff-badge" id="vsAccuracyDiff">+5%</span>
+                  </div>
+                  <div class="vs-stat-footer-text">this week</div>
+                </div>
+
+                <!-- Stat 2: Streak -->
+                <div class="vs-stat-card">
+                  <div class="vs-stat-header">
+                    <span class="vs-stat-label">STREAK</span>
+                    <strong class="vs-stat-main-num" id="vsStreakNum">7</strong>
+                    <span class="vs-stat-unit">days</span>
+                  </div>
+                  <div class="vs-stat-footer-text" id="vsStreakBest">Best: 12 days</div>
+                </div>
+
+                <!-- Stat 3: Today's Goal -->
+                <div class="vs-stat-card">
+                  <div class="vs-stat-header">
+                    <span class="vs-stat-label">TODAY</span>
+                    <strong class="vs-stat-main-num" id="vsTodayNum">14/20</strong>
+                  </div>
+                  <div class="vs-stat-footer-text" id="vsTodayLeft">6 words left</div>
+                </div>
+
+                <!-- Stat 4: Mastery % -->
+                <div class="vs-stat-card">
+                  <div class="vs-stat-header">
+                    <span class="vs-stat-label">MASTERY</span>
+                    <strong class="vs-stat-main-num" id="vsMasteryNum">42%</strong>
+                  </div>
+                  <div class="vs-stat-footer-text" id="vsMasteryDeck">of 1,200-word deck</div>
+                </div>
+
+              </div>
+
+              <!-- Today's Review Card -->
+              <section class="vs-review-card">
+                <h3 class="vs-review-title">Today's review</h3>
+                
+                <div class="vs-review-list">
+                  
+                  <!-- Review Item 1 -->
+                  <div class="vs-review-item">
+                    <div class="vs-item-left">
+                      <strong class="vs-item-title" id="vsDueCount">6 words due</strong>
+                      <span class="vs-item-note">Priority: difficult words</span>
+                    </div>
+                    <span class="vs-item-time">6 min</span>
+                  </div>
+
+                  <!-- Review Item 2 -->
+                  <div class="vs-review-item">
+                    <div class="vs-item-left">
+                      <strong class="vs-item-title" id="vsNewCount">3 new words</strong>
+                      <span class="vs-item-note">Next level preview</span>
+                    </div>
+                    <span class="vs-item-time">3 min</span>
+                  </div>
+
+                  <!-- Review Item 3 -->
+                  <div class="vs-review-item">
+                    <div class="vs-item-left">
+                      <strong class="vs-item-title">1 challenge</strong>
+                      <span class="vs-item-note">Beat your best score</span>
+                    </div>
+                    <span class="vs-item-time">2 min</span>
+                  </div>
+
+                </div>
+
+                <!-- Start 10-Minute Session CTA -->
+                <button class="vs-session-btn" id="vsStartSessionBtn">
+                  Start 10-minute session
+                </button>
+              </section>
+
+            </div>
+
+          </div>
+
+          <!-- Bottom Micro-Caption -->
+          <footer class="vs-dashboard-footer">
+            <span>Original UI concept based on observed high-level MCQ learning patterns from the requested research.</span>
+          </footer>
+
+        </div>
+      </div>
+    </main>
+
+    <!-- HERO VIEW 2: MAGOOSH-STYLE UNIT > LESSON VOCABULARY MASTERY HUB (PRACTICE ARENA) -->
+    <section class="vocab-hub-view hidden" id="vocabHubView">
+
       <div class="magoosh-app-wrapper">
         
         <!-- Top Navigation & Brand Header -->
@@ -284,7 +501,7 @@
         </section>
 
       </div>
-    </main>
+    </section>
 
       <!-- COMPANION SECONDARY VIEW: 295-PAGE TEXTBOOK READER -->
     

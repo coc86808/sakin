@@ -1,3 +1,207 @@
+
+// ==========================================================================
+// VOCABSPRINT USER DASHBOARD ENGINE (INTELLIGENT DYNAMIC ORCHESTRATION)
+// ==========================================================================
+
+const VocabSprintDashboardEngine = {
+  init() {
+    this.bindEvents();
+    this.updateGreetingTime();
+    this.updateDashboardStats();
+    this.renderLearningPath();
+  },
+
+  bindEvents() {
+    // Sidebar Nav Buttons
+    const navDashboard = document.getElementById('vsNavDashboard');
+    const navPractice = document.getElementById('vsNavPractice');
+    const navProgress = document.getElementById('vsNavProgress');
+    const navReview = document.getElementById('vsNavReview');
+    const navCompete = document.getElementById('vsNavCompete');
+    const navTextbook = document.getElementById('vsNavTextbook');
+    const navSettings = document.getElementById('vsNavSettings');
+
+    if (navDashboard) {
+      navDashboard.onclick = () => this.switchView('dashboard');
+    }
+    if (navPractice) {
+      navPractice.onclick = () => this.switchView('practice');
+    }
+    if (navProgress || navCompete || navReview) {
+      [navProgress, navCompete, navReview].forEach(btn => {
+        if (btn) btn.onclick = () => this.switchView('practice');
+      });
+    }
+    if (navTextbook) {
+      navTextbook.onclick = () => {
+        if (window.VocabHubEngine) window.VocabHubEngine.switchView('reader');
+      };
+    }
+    if (navSettings) {
+      navSettings.onclick = () => {
+        const adminView = document.getElementById('adminPortalView');
+        if (adminView) {
+          showAdminPortal();
+        } else {
+          alert('Logged in as Sakin (Admin). User settings: Streak notifications active, daily goal 20 words.');
+        }
+      };
+    }
+
+    // Hero "Start practice ->" button
+    const heroBtn = document.getElementById('vsHeroStartBtn');
+    if (heroBtn) {
+      heroBtn.onclick = () => {
+        this.switchView('practice');
+        if (window.VocabHubEngine) {
+          const u2 = window.VocabHubEngine.unitsData[1] || window.VocabHubEngine.unitsData[0];
+          window.VocabHubEngine.openUnitLessons(u2);
+        }
+      };
+    }
+
+    // "Start 10-minute session" CTA button
+    const sessionBtn = document.getElementById('vsStartSessionBtn');
+    if (sessionBtn) {
+      sessionBtn.onclick = () => {
+        this.switchView('practice');
+        if (window.VocabHubEngine) {
+          const u1 = window.VocabHubEngine.unitsData[0];
+          const l1 = u1.lessons[0];
+          window.VocabHubEngine.startLessonQuiz(u1, l1);
+        }
+      };
+    }
+  },
+
+  switchView(viewName) {
+    const vsView = document.getElementById('vocabSprintView');
+    const hubView = document.getElementById('vocabHubView');
+    const readerView = document.getElementById('readerCompanionView');
+    const btnHub = document.getElementById('switchVocabHubBtn');
+    const btnReader = document.getElementById('switchReaderBtn');
+
+    if (viewName === 'dashboard') {
+      if (vsView) vsView.classList.add('active');
+      if (hubView) hubView.classList.add('hidden');
+      if (readerView) readerView.classList.add('hidden');
+      if (btnHub) btnHub.classList.add('active');
+      if (btnReader) btnReader.classList.remove('active');
+    } else if (viewName === 'practice') {
+      if (vsView) vsView.classList.remove('active');
+      if (hubView) hubView.classList.remove('hidden');
+      if (readerView) readerView.classList.add('hidden');
+      if (btnHub) btnHub.classList.add('active');
+      if (btnReader) btnReader.classList.remove('active');
+    } else if (viewName === 'reader') {
+      if (vsView) vsView.classList.remove('active');
+      if (hubView) hubView.classList.add('hidden');
+      if (readerView) readerView.classList.remove('hidden');
+      if (btnHub) btnHub.classList.remove('active');
+      if (btnReader) btnReader.classList.add('active');
+    }
+  },
+
+  updateGreetingTime() {
+    const greetingEl = document.getElementById('vsGreetingTime');
+    if (!greetingEl) return;
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      greetingEl.textContent = 'morning';
+    } else if (hour >= 12 && hour < 17) {
+      greetingEl.textContent = 'afternoon';
+    } else {
+      greetingEl.textContent = 'evening';
+    }
+  },
+
+  updateDashboardStats() {
+    const streak = parseInt(safeStorage.get('e4t_hub_streak', '7'), 10) || 7;
+    const masteredList = safeStorage.get('e4t_magoosh_mastered', []) || [];
+    const masteredCount = Math.max(masteredList.length, 120);
+
+    const elStreakCount = document.getElementById('vsStreakCount');
+    const elMasteredSummary = document.getElementById('vsMasteredSummary');
+    const elStreakNum = document.getElementById('vsStreakNum');
+    const elMasteredNum = document.getElementById('vsMasteryNum');
+
+    if (elStreakCount) elStreakCount.textContent = `${streak} day streak`;
+    if (elMasteredSummary) elMasteredSummary.textContent = `${masteredCount} words mastered`;
+    if (elStreakNum) elStreakNum.textContent = streak;
+    if (elMasteredNum) elMasteredNum.textContent = `${Math.min(Math.round((masteredCount / 255) * 100), 100)}%`;
+  },
+
+  renderLearningPath() {
+    const container = document.getElementById('vsLearningPathGrid');
+    if (!container) return;
+
+    const cardsData = [
+      {
+        title: 'unite 1',
+        status: 'Completed',
+        statusClass: 'completed',
+        progressPct: 100,
+        metaText: '25 / 25 mastered',
+        btnText: 'Review',
+        isLocked: false,
+        unitIndex: 0
+      },
+      {
+        title: 'unite 2',
+        status: 'In progress',
+        statusClass: 'inprogress',
+        progressPct: 72,
+        metaText: '18 / 25 mastered',
+        btnText: 'Continue',
+        isLocked: false,
+        unitIndex: 1
+      },
+      {
+        title: 'Intermediate 1',
+        status: 'Locked',
+        statusClass: 'locked',
+        progressPct: 0,
+        metaText: 'Unlock after Basic 2',
+        btnText: 'Locked',
+        isLocked: true,
+        unitIndex: 2
+      }
+    ];
+
+    container.innerHTML = '';
+    cardsData.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'vs-level-card';
+      card.innerHTML = `
+        <div class="vs-card-top-row">
+          <h4 class="vs-level-name">${c.title}</h4>
+          <span class="vs-status-badge ${c.statusClass}">${c.status}</span>
+        </div>
+        <div class="vs-level-progress-bar">
+          <div class="vs-level-progress-fill" style="width: ${c.progressPct}%;"></div>
+        </div>
+        <span class="vs-level-meta">${c.metaText}</span>
+        <button class="vs-level-action-btn ${c.isLocked ? 'locked-btn' : ''}" ${c.isLocked ? 'disabled' : ''}>
+          ${c.btnText}
+        </button>
+      `;
+
+      if (!c.isLocked) {
+        card.querySelector('.vs-level-action-btn').onclick = () => {
+          this.switchView('practice');
+          if (window.VocabHubEngine) {
+            const u = window.VocabHubEngine.unitsData[c.unitIndex] || window.VocabHubEngine.unitsData[0];
+            window.VocabHubEngine.openUnitLessons(u);
+          }
+        };
+      }
+
+      container.appendChild(card);
+    });
+  }
+};
+
+
 // Mobile Sidebar Drawer Management
 function initMobileSidebar() {
   const sidebar = document.getElementById('sidebar');
@@ -582,6 +786,7 @@ function initApp() {
   
   initVocabQuiz();
   VocabHubEngine.init();
+  VocabSprintDashboardEngine.init();
   renderTOC();
   renderBookmarks();
   renderNotes();
@@ -4612,6 +4817,7 @@ if (typeof window !== 'undefined') {
   window.openDictionaryModal = lookupDictionary;
   window.TTSEngine = TTSEngine;
   window.VocabHubEngine = VocabHubEngine;
+  window.VocabSprintDashboardEngine = VocabSprintDashboardEngine;
   window.MagooshVocabHub = VocabHubEngine;
   window.AudioEngine = AudioEngine;
   window.BANGLA_DICT = window.BANGLA_DICT_DATA;
